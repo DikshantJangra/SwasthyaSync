@@ -4,10 +4,10 @@ import React, { use, useState } from 'react'
 import { AiOutlineUserSwitch, AiOutlineLock } from "react-icons/ai";
 import { BiRename } from "react-icons/bi";
 import { MdOutlineMail } from "react-icons/md";
-import { auth } from "../firebase/firebaseConfig.js"; 
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { updateProfile } from "firebase/auth";
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { auth } from "../firebase/firebaseConfig.js"; 
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { useRouter } from 'next/navigation.js';
 
 
