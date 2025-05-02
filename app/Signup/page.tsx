@@ -1,10 +1,76 @@
+"use client"
 import Link from 'next/link';
-import React from 'react'
+import React, { use, useState } from 'react'
 import { AiOutlineUserSwitch, AiOutlineLock } from "react-icons/ai";
 import { BiRename } from "react-icons/bi";
 import { MdOutlineMail } from "react-icons/md";
+import { auth } from "../firebase/firebaseConfig.js"; 
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { updateProfile } from "firebase/auth";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { useRouter } from 'next/navigation.js';
+
+
+
+// Example function that receives user input
+
 
 const Signup = () => {
+    const router = useRouter(); // Initializing Router
+
+    const [name, setName] = useState<string>("");
+    const [username, setUsername] = useState<string>("");
+    const [email, setEmail] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
+    const [confirmPassword, setConfirmPassword] = useState<string>("");
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<boolean>(false);
+
+    const clearError = ()=>{
+        setTimeout(()=>{
+            setError(null)
+        },2000)
+    }
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if(password != confirmPassword){
+            setError('Passwords do not match')
+            clearError()
+            return
+        }
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          if(auth.currentUser){
+            await updateProfile(auth.currentUser, {
+                displayName: name || username
+            })
+          }
+          console.log("User signed up:", userCredential.user);
+          setSuccess(true);
+          setError(null);
+          router.push('/dashboard')
+        } catch (err: any) {
+          setError(err.message);
+          console.error("Signup error:", err.code, err.message);
+        }
+      };
+
+    const handleGoogleSignup = async()=>{
+        const provider = new GoogleAuthProvider();
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+            console.log("Google sign-in successful:", user);
+            setSuccess(true);
+            setError(null);
+            router.push('/dashboard')
+        } catch (err: any) {
+            setError(err.message);
+            console.error("Google sign-in error:", err.code, err.message);
+            clearError();
+        }
+    }
+      
   return (
     <>
         <div className='min-h-dvh w-full font-Poppins bg-[#FF4A20] grid grid-cols-2'>
@@ -18,17 +84,34 @@ const Signup = () => {
                     <p className='text-center py-4 text-[#FF4A20] font-bold text-5xl'>Sync Yourself</p>
 
                     {/* Form */}
-                    <form className='flex flex-col justify-center items-center gap-3 h-100'>
+                    <form onSubmit={handleSubmit} className='flex flex-col justify-center items-center gap-3 h-100'>
                     {/* <div className='flex flex-col justify-center items-center gap-3 h-full'> */}
-                    <div className='flex items-center gap-2 w-75 border-[1px] border-zinc-300 px-4 py-2 required rounded-lg'><span className='opacity-50 text-lg'><BiRename /></span><input className='focus:outline-none' type="text" placeholder='Name' /></div>
-                    <div className='flex items-center gap-2 w-75 border-[1px] border-zinc-300 px-4 py-2 required rounded-lg'><span className='opacity-50 text-lg'><AiOutlineUserSwitch /></span><input className='focus:outline-none' type="text" placeholder='Username' /></div>
+                        <div className='flex items-center gap-2 w-75 border-[1px] border-zinc-300 px-4 py-2 required rounded-lg'>
+                            <span className='opacity-50 text-lg'><BiRename /></span>
+                            <input
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className='focus:outline-none' type="text" placeholder='Name'
+                            />
+                        </div>
+                        <div className='flex items-center gap-2 w-75 border-[1px] border-zinc-300 px-4 py-2 required rounded-lg'>
+                            <span className='opacity-50 text-lg'><AiOutlineUserSwitch /></span>
+                            <input
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                className='focus:outline-none' type="text" placeholder='Username' 
+                            />
+                        </div>
                         <div className='w-75'>
                             <div className='flex items-center gap-2 border-[1px] border-zinc-300 px-4 py-2 rounded-lg'>
                             <span className='opacity-50 text-lg'><MdOutlineMail /></span>
                             <input
                                 name="email"
                                 type="email"
+                                value={email}
+                                onChange={(e)=>setEmail(e.target.value)}
                                 placeholder="Email"
+                                required
                                 className='focus:outline-none w-full bg-transparent'
                             />
                             </div>
@@ -41,15 +124,24 @@ const Signup = () => {
                                 name="password"
                                 type="password"
                                 placeholder="Password"
+                                onChange={(e) => setPassword(e.target.value)} 
                                 className='focus:outline-none w-full bg-transparent'
                             />
                             </div>
 
                         </div>
-                        <div className='flex items-center gap-2 w-75 border-[1px] border-zinc-300 px-4 py-2 required rounded-lg'><span className='opacity-50 text-lg'><AiOutlineLock /></span><input className='focus:outline-none' type="password" placeholder='Confirm Password' /></div>
-                        <div className='pt-5 pb-2'>
+                        <div className='flex items-center gap-2 w-75 border-[1px] border-zinc-300 px-4 py-2 required rounded-lg'>
+                            <span className='opacity-50 text-lg'><AiOutlineLock /></span>
+                            <input
+                                value={confirmPassword}
+                                onChange={(e)=>setConfirmPassword(e.target.value)}
+                                className='focus:outline-none' type="password" placeholder='Confirm Password' 
+                            />
+                        </div>
+                        {error && <p className='absolute bottom-30 text-red-600'>{error}</p>}
+                        <div className='mt-8 pb-2'>
                             <button type="submit" className='bg-[#FF4A20] text-white font-semibold cursor-pointer px-4 py-2 rounded-lg mr-3'>Sign up</button>
-                            <button type="button" className='bg-[#FF4A20] font-semibold text-white cursor-pointer px-4 py-2 rounded-lg'>
+                            <button onClick={handleGoogleSignup} className='bg-[#FF4A20] font-semibold text-white cursor-pointer px-4 py-2 rounded-lg'>
                                 <img className='inline mr-2 h-6' src="/GoogleWhiteIco.png" alt="Google Icon" /> Sign up with Google
                             </button>
                         </div>

@@ -5,6 +5,7 @@ import SignupButton from "./server_components/SignupButton";
 import Link from "next/link";
 
 export default function Home() {
+
   return (
     <>
       <div className="h-screen bg-black text-white">
