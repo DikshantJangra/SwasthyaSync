@@ -5,8 +5,24 @@ import { FaGlassWater } from "react-icons/fa6";
 import { GiMuscularTorso } from "react-icons/gi";
 import { MdRestaurantMenu } from "react-icons/md";
 import { AiFillSun } from "react-icons/ai";
+import { BsDropletFill } from "react-icons/bs";
+import { BiPlusMedical } from "react-icons/bi";
+
+import BarChart from '../components/BarChart';
+
 
 const Hydration = () => {
+  const drinks =[
+    {qnt:250, time:'8:00'},
+    {qnt:450, time:'3:00'},
+    {qnt:250, time:'4:00'},
+    {qnt:150, time:'5:00'},
+    {qnt:100, time:'11:00'},
+    {qnt:300, time:'13:00'},
+    {qnt:500, time:'16:00'},
+    {qnt:300, time:'19:00'},
+    {qnt:100, time:'21:00'},
+  ]
   return (
     <div className='h-screen px-4 pt-5 bg-black'>
       <div className='grid grid-cols-[15%_85%]'>
@@ -67,9 +83,31 @@ const Hydration = () => {
             </p>
           </div>
         </div>
+
+        <div className='grid grid-cols-3 mx-5 mt-20 '>
+          <div className='col-span-2 self-end w-190 max-w-4xl shadow-2xl'>
+            <BarChart />
+          </div>
+
+          <div className='relative'>
+            <div className='overflow-y-auto overflow-x-hidden h-100 w-80 bg-[#008CFF]/20 py-5 px-3 rounded-lg'>
+            <span className='absolute text-[#008CFF] text-9xl top-0 right-0'><BsDropletFill /></span>
+            <p className='sticky top-0 text-3xl font-bold text-center text-[#008CFF]'>Drink Logs</p>
+
+            {drinks.map((drink, idx)=>(
+              <div key={idx} className='w-full h-15 mt-4 text-[#008CFF] bg-[#008CFF]/20 rounded-2xl flex justify-between items-center px-7'>
+                <p>{drink.qnt} ml</p>
+                <p className='font-bold'>{drink.time}</p>
+              </div>
+            ))}
+            </div>
+          </div>
+
+          <div className='absolute right-15 bottom-10 px-5 py-5 rounded-full bg-[#008CFF]/20 cursor-pointer'>
+            <BiPlusMedical className='text-2xl text-[#008CFF]' />
+          </div>
         </div>
-
-
+        </div>
 
       </div>
       {/* 

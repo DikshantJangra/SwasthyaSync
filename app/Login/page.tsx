@@ -5,8 +5,11 @@ import { AiOutlineUserSwitch, AiOutlineLock } from "react-icons/ai";
 import { auth } from "../firebase/firebaseConfig.js"; 
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { LiaAwardSolid } from 'react-icons/lia';
+import { useRouter } from 'next/navigation.js';
 
 const Login = () => {
+    const router = useRouter(); // Initializing Router
+
     const[email, setEmail] = useState('')
     const[password, setPassword] = useState('')
     const[error, setError] = useState('')
@@ -16,7 +19,9 @@ const Login = () => {
         try{
             const userCredential = await signInWithEmailAndPassword(auth, email, password)
             const user = userCredential.user
+            
             console.log(user)
+            router.push('/dashboard')
 
         }
         catch(err){
