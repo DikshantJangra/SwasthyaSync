@@ -1,5 +1,6 @@
+'use client'
 import Link from 'next/link'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { IoBodySharp } from "react-icons/io5";
 import { FaGlassWater } from "react-icons/fa6";
 import { GiMuscularTorso } from "react-icons/gi";
@@ -7,11 +8,13 @@ import { MdRestaurantMenu } from "react-icons/md";
 import { AiFillSun } from "react-icons/ai";
 import { BsDropletFill } from "react-icons/bs";
 import { BiPlusMedical } from "react-icons/bi";
-
-import BarChart from '../components/BarChart';
+import { auth } from '../../firebase/firebaseConfig';
+import BarChart from '../../components/BarChart';
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 
 const Hydration = () => {
+  const [username, setUsername] = useState('')
   const drinks =[
     {qnt:250, time:'8:00'},
     {qnt:450, time:'3:00'},
@@ -23,6 +26,15 @@ const Hydration = () => {
     {qnt:300, time:'19:00'},
     {qnt:100, time:'21:00'},
   ]
+
+  useEffect(()=>{
+    const unsubscribe = onAuthStateChanged(auth, (user: User | null)=>{
+      if(user){
+        setUsername(user.displayName || 'Anonymus')
+      }
+    })
+    return ()=> unsubscribe();
+  },[])
   return (
     <div className='h-screen px-4 pt-5 bg-black'>
       <div className='grid grid-cols-[15%_85%]'>
@@ -32,7 +44,7 @@ const Hydration = () => {
         </div>
         <p className='self-end justify-self-center text-white text-5xl'>
           <span>Welcome </span>
-          <span className='font-bold text-[#FF4A20]'>Dikshant!</span>
+          <span className='font-bold text-[#FF4A20]'>{username}!</span>
         </p>
       </div>
 

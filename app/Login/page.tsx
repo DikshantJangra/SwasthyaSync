@@ -21,11 +21,12 @@ const Login = () => {
             const user = userCredential.user
             
             console.log(user)
-            router.push('/dashboard')
+            router.push('/dashboard/Hydration')
 
         }
-        catch(err){
+        catch(err: any){
             console.error("Login error:", err, err);
+            setError(err.message)
         }
         console.log('Signing in')
     }
@@ -74,7 +75,7 @@ const Login = () => {
                                 className='focus:outline-none w-full bg-transparent'
                             />
                             </div>
-
+                            <p className='pt-3 text-red-600'>{error}</p>
                         </div>
                         <div className='pt-5 pb-2'>
                             <button type="submit" className='bg-[#FF4A20] text-white font-semibold cursor-pointer px-4 py-2 rounded-lg mr-3'>Log in</button>

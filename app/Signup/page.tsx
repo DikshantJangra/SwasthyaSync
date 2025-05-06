@@ -48,10 +48,10 @@ const Signup = () => {
           console.log("User signed up:", userCredential.user);
           setSuccess(true);
           setError(null);
-          router.push('/dashboard')
+          router.push('/Login')
         } catch (err: any) {
           setError(err.message);
-          console.error("Signup error:", err.code, err.message);
+        //   console.error("Signup error:", err.code, err.message);
         }
       };
 
@@ -63,7 +63,7 @@ const Signup = () => {
             console.log("Google sign-in successful:", user);
             setSuccess(true);
             setError(null);
-            router.push('/dashboard')
+            router.push('/Login')
         } catch (err: any) {
             setError(err.message);
             console.error("Google sign-in error:", err.code, err.message);

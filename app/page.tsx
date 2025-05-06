@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Hydration from "./Hydration/page";
+import Hydration from "./dashboard/Hydration/page";
 import LoginButton from "./server_components/LoginButton";
 import SignupButton from "./server_components/SignupButton";
 import Link from "next/link";
@@ -12,7 +12,7 @@ export default function Home() {
       <header className='grid grid-cols-3 py-6 px-4 font-Poppins'>
         <nav className='flex col-span-2 justify-self-end items-end gap-5'>
             <Image src={'/swasthyasync.svg'} height={40} width={40} alt='Swasthya Sync'></Image>
-            <span className='text-5xl font-black text-[#FF4A20]'>Swāsthya Sync</span>
+            <span className='text-[2.6vmax] font-black text-[#FF4A20]'>Swāsthya Sync</span>
         </nav>
       <div className="flex gap-5 self-center justify-self-end">
         <Link href={'/Login'}><LoginButton /></Link>
@@ -28,9 +28,9 @@ export default function Home() {
       </div>
 
       <div className="flex justify-center items-center gap-8 mt-1 font-bold text-[6vmax] text-[#FF4A20]">
-        <span className="drop-shadow-lg drop-shadow-white/50 opacity-50">BODY</span>
-        <span className="drop-shadow-lg drop-shadow-white/50">SPIRIT</span>
-        <span className="drop-shadow-lg drop-shadow-white/50 opacity-50">MIND</span>
+        <span className="drop-shadow-lg drop-shadow-white/50 opacity-50 block sm:inline">BODY</span>
+        <span className="drop-shadow-lg drop-shadow-white/50  block sm:inline">SPIRIT</span>
+        <span className="drop-shadow-lg drop-shadow-white/50 opacity-50  block sm:inline">MIND</span>
 
       </div>
         <div className="text-center">
