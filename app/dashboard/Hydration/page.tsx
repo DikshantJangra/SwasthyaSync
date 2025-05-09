@@ -11,10 +11,30 @@ import { BiPlusMedical } from "react-icons/bi";
 import { auth } from '../../firebase/firebaseConfig';
 import BarChart from '../../components/BarChart';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import { Sedan } from 'next/font/google';
 
 
 const Hydration = () => {
   const [username, setUsername] = useState('')
+  const [location, setLocation] = useState<any>(null);
+  const [city, setCity] = useState('')
+  const [day, setDay] = useState('')
+  
+  const fetchWeather = async()=>{
+    try{
+      const resp = await fetch(`https://api.weatherapi.com/v1/current.json?key=ef77917615df4c5692d150428250905&q=${city}&aqi=no`)
+      const result = await resp.json()
+      setLocation(result)
+      localStorage.setItem('location', JSON.stringify(result));
+      console.log(result)
+      console.log('Fetching Weather')
+    }
+    catch(err){
+      setLocation('')
+    }
+  }
+  
+  
   const drinks =[
     {qnt:250, time:'8:00'},
     {qnt:450, time:'3:00'},
@@ -26,8 +46,20 @@ const Hydration = () => {
     {qnt:300, time:'19:00'},
     {qnt:100, time:'21:00'},
   ]
-
   useEffect(()=>{
+    if(location && location.current.temp_c){
+      const temp = location.current.temp_c
+      temp>22?setDay(" hot day "):setDay(" cold day ")
+    }
+  },[location])
+  useEffect(()=>{
+    const storedLocation  = localStorage.getItem('location')
+    if(storedLocation){
+      setLocation(JSON.parse(storedLocation))
+    }else{
+      setLocation('')
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user: User | null)=>{
       if(user){
         setUsername(user.displayName || 'Anonymus')
@@ -57,14 +89,24 @@ const Hydration = () => {
         </div>
 
         <div className='mx-8'>
-          <div className='h-35 flex justify-between items-center bg-[#FF4A20]/20 rounded-2xl mt-12 px-8 p-5'>
-            <span className='flex items-center justify-between gap-3 text-4xl font-bold'><AiFillSun className='text-9xl text-[#FF4A20]' /> 26° C</span>
-            <p className='text-3xl'>
-              <span>It’s a </span>
-              <span className='text-[#FF4A20] font-bold'>sunny day </span>
-              <span>today.</span>
-            </p>
-            <p className='text-2xl text-zinc-500 border-l-[1px] pl-8 h-20 pt-6'>Make sure to stay hydrated!</p>
+          <div className='h-35 bg-[#FF4A20]/20 rounded-2xl mt-12 px-8 py-2'>
+            {location? (
+              <div className='flex justify-between items-center'>
+              <span className='flex items-center justify-between gap-3 text-4xl font-bold'><AiFillSun className='text-9xl text-[#FF4A20]' /> {location?.current?.temp_c}° C</span>
+              <p className='text-3xl'>
+                <span>It’s a </span>
+                <span className='text-[#FF4A20] font-bold lowercase'>{day}</span>
+                <span>today.</span>
+              </p>
+              <p className='text-2xl text-zinc-500 border-l-[1px] pl-8 h-20 pt-6'>Make sure to stay hydrated!</p>
+            </div>
+            ):(
+              <div className='flex flex-col justify-center items-center'>
+                <p className='font-medium text-2xl'>📍 Set your location:</p>
+                  <div className='w-fit border border-white mt-2 text-center rounded-2xl pr-12 px-3 py-1'><input value={city} onChange={(e)=>setCity(e.target.value)} type="text" placeholder='Where you live?' className='outline-none'/></div>
+                  <button onClick={fetchWeather} className='mt-2 px-3 py-1 rounded-2xl cursor-pointer bg-[#FF4A20]/80'>Set Location</button>
+              </div>
+            )}
           </div>
 
         <div className='flex justify-between mt-5'>
