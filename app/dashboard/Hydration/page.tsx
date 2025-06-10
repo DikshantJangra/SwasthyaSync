@@ -46,12 +46,13 @@ const Hydration = () => {
     {qnt:300, time:'19:00'},
     {qnt:100, time:'21:00'},
   ]
-  useEffect(()=>{
-    if(location && location.current.temp_c){
-      const temp = location.current.temp_c
-      temp>22?setDay(" hot day "):setDay(" cold day ")
-    }
-  },[location])
+  console.log(location)
+  // useEffect(()=>{
+  //   if(location && location.current.temp_c){
+  //     const temp = location.current.temp_c
+  //     temp>22?setDay(" hot day "):setDay(" cold day ")
+  //   }
+  // },[location])
   useEffect(()=>{
     const storedLocation  = localStorage.getItem('location')
     if(storedLocation){
@@ -67,6 +68,7 @@ const Hydration = () => {
     })
     return ()=> unsubscribe();
   },[])
+  
   return (
     <div className='h-screen px-4 pt-5 bg-black'>
       <div className='grid grid-cols-[15%_85%]'>
@@ -96,6 +98,8 @@ const Hydration = () => {
               <p className='text-3xl'>
                 <span>It’s a </span>
                 <span className='text-[#FF4A20] font-bold lowercase'>{day}</span>
+                <span>in </span>
+                {/* <span className='underline-offset-5 underline cursor-pointer [text-decoration-thickness:2px]' onClick={()=>setLocation('')}>{location.location.name} </span> */}
                 <span>today.</span>
               </p>
               <p className='text-2xl text-zinc-500 border-l-[1px] pl-8 h-20 pt-6'>Make sure to stay hydrated!</p>
