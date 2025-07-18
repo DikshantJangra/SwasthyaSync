@@ -1,69 +1,112 @@
-# React + TypeScript + Vite
+# 🧠 Swāsthya Sync
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> Your Health, In Sync.
 
-Currently, two official plugins are available:
+Swāsthya Sync is an upcoming **health tracking & document storage platform** that empowers individuals to **track**, **store**, and **share** their health data with privacy and purpose.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🚀 Project Overview
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+**Swāsthya Sync** is a privacy-first health syncing platform focused on:
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- 📂 Organizing & storing health documents (prescriptions, test reports, etc.)
+- 🫀 Tracking key health metrics and medicine routines
+- 🔒 Providing **temporary access control** to doctors and caregivers
+- 📣 Creating **awareness** around proactive health tracking
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+Our motto:  
+**"What gets measured, gets managed."**
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🎯 Goals
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. ✅ Make people **aware** of the importance of tracking their health.
+2. 🛠️ Build a platform where they can **actually start** doing it — easily, safely, and effectively.
+3. 🔐 Ensure **complete user data privacy** and access control.
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+
+## 🌐 Tech Stack
+
+| Area        | Tech Used               |
+|-------------|--------------------------|
+| Frontend    | React + TypeScript + Vite |
+| Styling     | Tailwind CSS             |
+| Backend     | Supabase (Auth, DB, API) |
+| Deployment  | Vercel / Netlify (TBD)   |
+
+---
+
+## 📱 Features (MVP)
+
+- [x] Landing Page (SPA, 5–6 sections)
+- [ ] Supabase Auth (Sign In/Up)
+- [ ] Health Info Collection (Start Flow)
+- [ ] Document Upload & Viewer
+- [ ] Health Tracker (Vitals, Medicine)
+- [ ] Temporary Access Link for Doctors
+- [ ] Dashboard UI for user summary
+
+---
+
+## 🧑‍🤝‍🧑 Who's This For?
+
+- 📊 Health-conscious individuals
+- 👵 Elders and caregivers managing records
+- 👩‍⚕️ Patients visiting multiple doctors
+- 🏃‍♂️ Fitness and lifestyle optimizers
+
+---
+
+## 🤝 Contribution Guide
+
+We ❤️ contributions. Here's how you can help:
+
+### 🔧 Setup
+1. Clone the repo  
+   `git clone https://github.com/your-username/swarthya-sync.git`
+
+2. Install dependencies  
+   `npm install`
+
+3. Start dev server  
+   `npm run dev`
+
+---
+
+### 🌱 Ways to Contribute
+
+- 🎨 Help polish the landing page UI
+- 🔐 Improve Supabase Auth + Privacy Flows
+- 📂 Work on the Health Docs Upload System
+- 🧪 Add new health tracking widgets
+- 🧠 Suggest content for awareness/blog
+- 🪲 Report issues or request features
+
+---
+
+### 📢 Got Feedback?
+
+We're building this for real people — if you have any thoughts, share via:
+
+- Issues
+- Discussions tab
+- [email@example.com](mailto:email@example.com)
+- [@yourtwitterhandle](https://twitter.com/yourtwitterhandle)
+
+---
+
+## 🔮 Vision
+
+Swāsthya Sync is more than a tool — it’s a **movement toward mindful health**.  
+We’re not here to just build another app. We're here to make tracking your health:
+
+- Simple  
+- Secure  
+- Actually helpful
+
+---
+
+> *Let’s build health awareness that lasts. One sync at a time.*
