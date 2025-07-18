@@ -12,6 +12,9 @@
 //           {/* <a href={'/Signup'}><SignupButton /></a> */}
 //         </div>
 //         </header>
+
+import Hero from "../components/landing/Hero"
+
   
 //         <div className="relative flex flex-col items-center mt-45">
 //           <div className="">
@@ -41,7 +44,9 @@
 
 const Index = () => {
   return (
-    <div>Index</div>
+    <div className="font-Poppins">
+        <Hero />
+    </div>
   )
 }
 
