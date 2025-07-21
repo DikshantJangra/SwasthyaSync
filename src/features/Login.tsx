@@ -2,7 +2,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom';
 import { AiOutlineUserSwitch, AiOutlineLock } from "react-icons/ai";
-import { LiaAwardSolid } from 'react-icons/lia';
+// import { LiaAwardSolid } from 'react-icons/lia';
 
 const Login = () => {
 
@@ -12,6 +12,7 @@ const Login = () => {
 
     const handleSignIn = async(e: React.FormEvent)=>{
         e.preventDefault()
+        setError('Error')
     }
     const handleSignInWithGoogle = async(e:React.FormEvent)=>{
         e.preventDefault();
@@ -19,13 +20,13 @@ const Login = () => {
     }
   return (
     <>
-        <div className='min-h-dvh w-full font-Poppins bg-[#FF4A20] grid grid-cols-2'>
-            <div className='bg-gradient-to-r from-[#ff0000] to-[rgba(0,0,0,0)] pt-30 pl-10'>
-                <p className='text-white text-center text-7xl leading-none tracking-tight font-bold'>YOUR HEALTH <br /> IS A PRIORITY!</p>
-                <img className='mt-30 mb-0 ml-auto mr-auto h-110' src="/wellH2o.png" alt="H2O" />
+        <div className='min-h-dvh w-full font-Poppins bg-[#FF4A20] grid md:grid-cols-2 grid-cols-1 grid-rows-3'>
+            <div className='md:bg-gradient-to-r from-[#ff0000] to-[rgba(0,0,0,0)] md:pt-30 pt-10 md:pl-10'>
+                <p className='text-white text-center text-3xl sm:text-5xl md:text-7xl leading-none tracking-tight font-bold'>YOUR HEALTH <br /> IS A PRIORITY!</p>
+                <img className='hidden md:block mt-30 mb-0 ml-auto mr-auto h-110' src="/wellH2o.png" alt="H2O" />
             </div>
             <div className='relative'>
-                <div className='absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] h-150 w-110 rounded-2xl p-10 bg-white'>
+                <div className='absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] md:h-150 md:w-110 rounded-2xl p-10 bg-white'>
                     <img className='mt-0 mb-0 ml-auto mr-auto h-18' src="/ssiconO.svg" alt="Swasthya Sync" />
                     <p className='text-center py-4 text-[#FF4A20] font-bold text-5xl'>Sync Yourself</p>
 
@@ -59,7 +60,7 @@ const Login = () => {
                             </div>
                             <p className='pt-3 text-red-600'>{error}</p>
                         </div>
-                        <div className='pt-5 pb-2'>
+                        <div className='pt-5 pb-2 flex flex-col md:flex-row justify-center items-center gap-2'>
                             <button type="submit" className='bg-[#FF4A20] text-white font-semibold cursor-pointer px-4 py-2 rounded-lg mr-3'>Log in</button>
                             <button onClick={handleSignInWithGoogle} className='bg-[#FF4A20] font-semibold text-white cursor-pointer px-4 py-2 rounded-lg'>
                                 <img className='inline mr-2 h-6' src="/GoogleIco.webp" alt="Google Icon" /> Sign in with Google
