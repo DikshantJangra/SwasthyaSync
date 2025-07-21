@@ -1,8 +1,12 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom"
 import Index from "./pages/Index"
+import Login from "./features/Login"
+import SignUp from "./features/Signup"
 
 const routeList = [
-  { path: '/', element: <Index />, protected: false, }
+  { path: '/', element: <Index />, protected: false, },
+  { path: '/Login', element: <Login />, protected: false, },
+  { path: '/SignUp', element: <SignUp />, protected: false, },
 ]
 
 const App = ()=>{

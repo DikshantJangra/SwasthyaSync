@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 type Icons = {
     path: string;
     alt: string;
@@ -22,7 +24,7 @@ const Hero = ()=>{
                         <p className="font-bold leading-none text-3xl sm:text-3xl md:text-5xl text-center md:text-left">Swāsthya Sync — <br />Your Health, In Sync</p>
                         <p className="text-lg sm:text-xl text-center md:text-left">Join a new era of health-conscious individuals tracking, syncing, and improving their health the right way.</p>
 
-                        <button className="flex items-center bg-white px-3 py-2 text-black font-semibold w-fit rounded-lg cursor-pointer hover:bg-white/70 transition-all duration-300">Build Your Own Health Vault <span className="text-xl">→</span></button>
+                        <Link to={'/SignUp'} className="flex items-center bg-white px-3 py-2 text-black font-semibold w-fit rounded-lg cursor-pointer hover:bg-white/70 transition-all duration-300">Build Your Own Health Vault <span className="text-xl"> →</span></Link>
                     </div>
                     <div className="flex justify-center">
                         <img src="/ssPhone.svg" alt="Swāsthya Sync Mobile App" className="h-145" />
