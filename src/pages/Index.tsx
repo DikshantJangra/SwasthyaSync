@@ -13,7 +13,10 @@
 //         </div>
 //         </header>
 
+import { useEffect } from "react"
 import Hero from "../components/landing/Hero"
+import { supabase } from "../lib/supabaseClient"
+import { useNavigate } from "react-router-dom"
 
   
 //         <div className="relative flex flex-col items-center mt-45">
@@ -43,6 +46,21 @@ import Hero from "../components/landing/Hero"
   
 
 const Index = () => {
+  const navigate = useNavigate()
+  useEffect(()=>{
+    const handleAuthRedirect = async()=>{
+      const{ data, error } = await supabase.auth.getSession();
+      if(error){
+        console.log(error)
+      }else if(data.session){
+        console.log(data.session.user)
+        navigate('/dashboard')
+      }else{
+        console.log('No Login detected')
+      }
+    }
+    handleAuthRedirect();
+  },[])
   return (
     <div className="font-Poppins">
         <Hero />
