@@ -2,15 +2,11 @@ import React, { useState } from 'react'
 import { AiOutlineUserSwitch, AiOutlineLock } from "react-icons/ai";
 import { BiRename } from "react-icons/bi";
 import { MdOutlineMail } from "react-icons/md";
-import { Link } from 'react-router-dom';
-
-
-
-// Example function that receives user input
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
 
 
 const SignUp = () => {
-
     const [name, setName] = useState<string>("");
     const [username, setUsername] = useState<string>("");
     const [email, setEmail] = useState<string>("");
@@ -18,25 +14,83 @@ const SignUp = () => {
     const [confirmPassword, setConfirmPassword] = useState<string>("");
     const [error, setError] = useState<string | null>(null);
     // const [success, setSuccess] = useState<boolean>(false);
+    const navigate = useNavigate();
 
-    const clearError = ()=>{
-        setTimeout(()=>{
-            setError(null)
-        },2000)
-    }
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if(password != confirmPassword){
-            setError('Passwords do not match')
-            clearError()
-            return
-        }
-        
+
+    const clearError = () => {
+        setTimeout(() => {
+          setError(null);
+        }, 2000);
       };
 
-    const handleGoogleSignup = async()=>{
-        
-    }
+      // Email + Password Sign-Up
+      const signUpUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+    
+        if (password !== confirmPassword) {
+          setError('Passwords do not match');
+          clearError();
+          return;
+        }
+    
+        const { data: authData , error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+          options:{
+            data:{
+              displayName: name,
+              providerType: 'email',
+            }
+          },
+        });
+        console.log(authError)
+    
+        if (authError) {
+          setError(authError.message);
+          clearError();
+        } else {
+          console.log('Signup successful:', authData);
+        }
+        const user = authData?.user
+        if (!user) {
+          setError('User creation failed');
+          return;
+        }
+      
+
+        const { error:insertError } = await supabase
+        .from('users')
+        .insert({
+          id: user.id,
+          email: user.email,
+          username: username,
+          name: name,
+          password: password
+        })
+        if (insertError) {
+          setError(insertError.message);
+          return;
+        }
+        navigate('/login')
+      
+      };
+
+    
+      // Google Sign-Up
+      const handleGoogleSignup = async () => {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+        });
+        console.log(data)
+    
+        if (error) {
+          setError(error.message);
+          clearError();
+        } else {
+          console.log('Redirecting to Google sign-in...');
+        }
+      };
+    
       
   return (
     <>
@@ -51,7 +105,7 @@ const SignUp = () => {
                     <p className='text-center py-4 text-[#FF4A20] font-bold text-5xl'>Sync Yourself</p>
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className='flex flex-col justify-center items-center gap-3 h-100'>
+                    <form onSubmit={signUpUser} className='flex flex-col justify-center items-center gap-3 h-100'>
                     {/* <div className='flex flex-col justify-center items-center gap-3 h-full'> */}
                         <div className='flex items-center gap-2 w-75 border-[1px] border-zinc-300 px-4 py-2 required rounded-lg'>
                             <span className='opacity-50 text-lg'><BiRename /></span>

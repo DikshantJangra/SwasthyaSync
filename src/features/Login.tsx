@@ -1,7 +1,8 @@
 'use client'
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AiOutlineUserSwitch, AiOutlineLock } from "react-icons/ai";
+import { supabase } from '../lib/supabaseClient';
 // import { LiaAwardSolid } from 'react-icons/lia';
 
 const Login = () => {
@@ -9,10 +10,25 @@ const Login = () => {
     const[email, setEmail] = useState('')
     const[password, setPassword] = useState('')
     const[error, setError] = useState('')
+    const navigate = useNavigate();
 
     const handleSignIn = async(e: React.FormEvent)=>{
         e.preventDefault()
-        setError('Error')
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+        })
+        if(error){
+            setError(`Error: ${error}`)
+            return
+        }
+        const user = data.user
+        const session = data.session
+        if(session){
+            console.log(`Signed in user: ${user}`)
+        }
+        navigate('/dashboard')
+        
     }
     const handleSignInWithGoogle = async(e:React.FormEvent)=>{
         e.preventDefault();
