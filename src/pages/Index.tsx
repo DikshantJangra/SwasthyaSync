@@ -46,21 +46,6 @@ import { useNavigate } from "react-router-dom"
   
 
 const Index = () => {
-  const navigate = useNavigate()
-  useEffect(()=>{
-    const handleAuthRedirect = async()=>{
-      const{ data, error } = await supabase.auth.getSession();
-      if(error){
-        console.log(error)
-      }else if(data.session){
-        console.log(data.session.user)
-        navigate('/dashboard')
-      }else{
-        console.log('No Login detected')
-      }
-    }
-    handleAuthRedirect();
-  },[])
   return (
     <div className="font-Poppins">
         <Hero />

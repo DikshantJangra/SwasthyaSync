@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { AiOutlineUserSwitch, AiOutlineLock } from "react-icons/ai";
 import { BiRename } from "react-icons/bi";
 import { MdOutlineMail } from "react-icons/md";
@@ -90,11 +90,26 @@ const SignUp = () => {
           console.log('Redirecting to Google sign-in...');
         }
       };
+      
+      useEffect(()=>{
+        const handleAuthRedirect = async()=>{
+          const{ data, error } = await supabase.auth.getSession();
+          if(error){
+            console.log(error)
+          }else if(data.session){
+            console.log(data.session.user)
+            navigate('/dashboard')
+          }else{
+            console.log('No Login detected')
+          }
+        }
+        handleAuthRedirect();
+      },[])
     
       
   return (
     <>
-        <div className='min-h-dvh w-full font-Poppins bg-[#FF4A20] grid md:grid-cols-2 grid-cols-1 grid-rows-3'>
+        <div className='min-h-dvh w-full font-Poppins bg-[#FF4A20] grid md:grid-cols-2 grid-cols-1 grid-rows-3 sm:grid-rows-1'>
             <div className='md:bg-gradient-to-r from-[#ff0000] to-[rgba(0,0,0,0)] md:pt-30 pt-10 md:pl-10'>
                 <p className='text-white text-center text-3xl sm:text-5xl md:text-7xl leading-none tracking-tight font-bold'>YOUR HEALTH <br /> IS A PRIORITY!</p>
                 <img className='hidden md:block mt-30 mb-0 ml-auto mr-auto h-110' src="/wellH2o.png" alt="H2O" />
