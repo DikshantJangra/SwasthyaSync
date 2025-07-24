@@ -2,13 +2,13 @@ import { BrowserRouter, Route, Routes } from "react-router-dom"
 import Index from "./pages/Index"
 import Login from "./features/Login"
 import SignUp from "./features/SignUp"
-import Dashboard from "./pages/app/Dashboard"
+import AppLayout from "./components/app/AppLayout"
 
 const routeList = [
   { path: '/', element: <Index />, protected: false, },
   { path: '/Login', element: <Login />, protected: false, },
   { path: '/SignUp', element: <SignUp />, protected: false, },
-  { path: '/dashboard', element: <Dashboard />, protected: false, },
+  { path: '/dashboard', element: <AppLayout />, protected: false, },
 ]
 
 const App = ()=>{
