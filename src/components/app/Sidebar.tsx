@@ -16,11 +16,11 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-46 h-screen flex flex-col text-white">
+    <aside className="w-50 h-screen flex flex-col text-white">
       <Link to={'/'} className="flex justify-center items-center gap-2 fixed pl-8 pt-5">
         <img src="/ssiconO.svg" alt="Swāsthya Sync" className='h-10 sm:h-13 max-w-full' />
         <h1 className="font-black text-lg sm:text-lg md:text-xl lg:text-2xl leading-none text-[#FF4A20]">Swāsthya <br />Sync</h1>
-        </Link>
+      </Link>
       <nav className="flex flex-col justify-center items-center gap-14 h-full">
         {buttons.map((btn) => (
           <Link
