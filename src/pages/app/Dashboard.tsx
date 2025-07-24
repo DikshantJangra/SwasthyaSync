@@ -2,53 +2,6 @@ import { useEffect, useState } from "react";
 import { BiUser } from "react-icons/bi";
 import { supabase } from "../../lib/supabaseClient";
 
-// Circular Progress Component
-const CircularProgress = ({ value, color, label }: { value: number; color: string; label: string }) => {
-  const radius = 40;
-  const stroke = 8;
-  const normalizedRadius = radius - stroke / 2;
-  const circumference = normalizedRadius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (value / 100) * circumference;
-
-  return (
-    <div className="flex flex-col items-center">
-      <svg height={radius * 2} width={radius * 2}>
-        <circle
-          stroke="#e5e7eb"
-          fill="transparent"
-          strokeWidth={stroke}
-          r={normalizedRadius}
-          cx={radius}
-          cy={radius}
-        />
-        <circle
-          stroke={color}
-          fill="transparent"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={circumference + ' ' + circumference}
-          style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.5s' }}
-          r={normalizedRadius}
-          cx={radius}
-          cy={radius}
-        />
-        <text
-          x="50%"
-          y="50%"
-          textAnchor="middle"
-          dy=".3em"
-          fontSize="1.2em"
-          fontWeight="bold"
-          fill={color}
-        >
-          {value}%
-        </text>
-      </svg>
-      <span className="mt-2 font-medium text-gray-700">{label}</span>
-    </div>
-  );
-};
-
 const Dashboard = () => {
     const [name, setName] = useState('loading')
 
@@ -92,6 +45,40 @@ const Dashboard = () => {
           };
           fetchCurrentUserData()          
     },[])
+
+    // Add these states and handlers at the top of the Dashboard component
+    const [editing, setEditing] = useState<string | null>(null);
+    const [height, setHeight] = useState<number | null>(null);
+    const [weight, setWeight] = useState<number | null>(null);
+    const [blood, setBlood] = useState<string | null>(null);
+    const [inputHeight, setInputHeight] = useState('');
+    const [inputWeight, setInputWeight] = useState('');
+    const [inputBlood, setInputBlood] = useState('');
+
+    const handleSubmitHeight = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (inputHeight) {
+        setHeight(Number(inputHeight));
+        setInputHeight('');
+        setEditing(null);
+      }
+    };
+    const handleSubmitWeight = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (inputWeight) {
+        setWeight(Number(inputWeight));
+        setInputWeight('');
+        setEditing(null);
+      }
+    };
+    const handleSubmitBlood = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (inputBlood) {
+        setBlood(inputBlood);
+        setInputBlood('');
+        setEditing(null);
+      }
+    };
   return (
     <div className="min-h-screen px-2 md:px-5">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -124,31 +111,80 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {/* Height Card */}
             <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
-              <img src="/healthTrack.svg" alt="Height" className="h-14 mb-2" />
-              <div className="text-lg font-semibold">Height</div>
-              <div className="text-2xl font-bold text-blue-600">-- cm</div>
-              <button className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 transition">Add Height</button>
+              <img src="/height.svg" alt="Height" className="h-14 mb-2" />
+              {editing === 'height' ? (
+                <form className="flex flex-col items-center w-full" onSubmit={handleSubmitHeight}>
+                  <input type="number" value={inputHeight} onChange={e => setInputHeight(e.target.value)} className="w-full text-center border rounded p-1 mb-2" placeholder="Enter height (cm)" />
+                  <button type="submit" className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 transition">Save</button>
+                </form>
+              ) : (
+                <>
+                  <div className="text-lg font-semibold">Height</div>
+                  <div className="text-2xl font-bold text-blue-600">{height ? `${height} cm` : '-- cm'}</div>
+                  <button className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 transition" onClick={() => setEditing('height')}>
+                    {height ? 'Update' : 'Add Height'}
+                  </button>
+                </>
+              )}
             </div>
             {/* Weight Card */}
             <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
-              <img src="/healthVault.svg" alt="Weight" className="h-14 mb-2" />
-              <div className="text-lg font-semibold">Weight</div>
-              <div className="text-2xl font-bold text-green-600">-- kg</div>
-              <button className="mt-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium hover:bg-green-200 transition">Add Weight</button>
+              <img src="/weight.svg" alt="Weight" className="h-14 mb-2" />
+              {editing === 'weight' ? (
+                <form className="flex flex-col items-center w-full" onSubmit={handleSubmitWeight}>
+                  <input type="number" value={inputWeight} onChange={e => setInputWeight(e.target.value)} className="w-full text-center border rounded p-1 mb-2" placeholder="Enter weight (kg)" />
+                  <button type="submit" className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium hover:bg-green-200 transition">Save</button>
+                </form>
+              ) : (
+                <>
+                  <div className="text-lg font-semibold">Weight</div>
+                  <div className="text-2xl font-bold text-green-600">{weight ? `${weight} kg` : '-- kg'}</div>
+                  <button className="mt-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium hover:bg-green-200 transition" onClick={() => setEditing('weight')}>
+                    {weight ? 'Update' : 'Add Weight'}
+                  </button>
+                </>
+              )}
             </div>
             {/* Blood Group Card */}
             <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
-              <img src="/healthRecords.svg" alt="Blood Group" className="h-14 mb-2" />
-              <div className="text-lg font-semibold">Blood Group</div>
-              <div className="text-2xl font-bold text-red-600">--</div>
-              <button className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium hover:bg-red-200 transition">Add Blood Group</button>
+              <img src="/blood.svg" alt="Blood Group" className="h-14 mb-2" />
+              {editing === 'blood' ? (
+                <form className="flex flex-col items-center w-full" onSubmit={handleSubmitBlood}>
+                  <select value={inputBlood} onChange={e => setInputBlood(e.target.value)} className="w-full text-center border rounded p-1 mb-2">
+                    <option value="">Select blood group</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                  <button type="submit" className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium hover:bg-red-200 transition">Save</button>
+                </form>
+              ) : (
+                <>
+                  <div className="text-lg font-semibold">Blood Group</div>
+                  <div className="text-2xl font-bold text-red-600">{blood ? blood : '--'}</div>
+                  <button className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium hover:bg-red-200 transition" onClick={() => setEditing('blood')}>
+                    {blood ? 'Update' : 'Add Blood Group'}
+                  </button>
+                </>
+              )}
             </div>
             {/* BMI Card */}
             <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
-              <img src="/healthAccess.svg" alt="BMI" className="h-14 mb-2" />
+              <img src="/bmi.svg" alt="BMI" className="h-14 mb-2" />
               <div className="text-lg font-semibold">BMI</div>
-              <div className="text-2xl font-bold text-purple-600">--</div>
-              <div className="text-xs text-gray-500">Add height and weight to calculate BMI</div>
+              <div className="text-2xl font-bold text-purple-600">{height && weight ? (weight / ((height/100) * (height/100))).toFixed(1) : '--'}</div>
+              {height && weight ? (
+                <div className={`text-xs font-semibold rounded-full px-3 py-1 mt-1 ${getBmiClass(weight / ((height/100) * (height/100)))}`}>
+                  {getBmiStatus(weight / ((height/100) * (height/100)))}
+                </div>
+              ) : (
+                <div className="text-xs text-gray-500">Add height and weight to calculate BMI</div>
+              )}
             </div>
           </div>
 
@@ -185,9 +221,9 @@ const Dashboard = () => {
               <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div className="h-full bg-blue-500 rounded-full" style={{ width: '50%' }}></div>
               </div>
-              <button className="mt-2 ml-auto flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 transition">
+              <a href="/hydration" className="mt-2 ml-auto flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 transition">
                 <span className="text-lg font-bold">+</span> Add
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -196,11 +232,11 @@ const Dashboard = () => {
         <div className="flex flex-col gap-6">
           {/* Add New Data Card */}
           <div className="bg-red-500 text-white rounded-2xl shadow p-6 flex flex-col items-center justify-center gap-4">
-            <div className="text-lg font-semibold text-center">What have you done today?</div>
-            <div className="text-center text-sm">Log your daily progress manually.</div>
-            <button className="bg-white text-red-500 font-semibold rounded-full px-6 py-2 flex items-center gap-2 shadow hover:bg-gray-100 transition">
-              <span className="text-xl font-bold">+</span> Add New Data
-            </button>
+            <div className="text-lg font-semibold text-center">Keep Your Health Records Organized!</div>
+            <div className="text-center text-sm">Easily add and manage your important health documents in one place.</div>
+            <a href="/health-vault" className="bg-white text-red-500 font-semibold rounded-full px-6 py-2 flex items-center gap-2 shadow hover:bg-gray-100 transition">
+              <span className="text-xl font-bold">+</span> Add New
+            </a>
           </div>
           {/* Tip of the Day Card */}
           <div className="bg-white rounded-2xl shadow p-6 flex flex-col gap-3">
@@ -222,3 +258,16 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+function getBmiStatus(bmi: number) {
+  if (bmi < 18.5) return 'Underweight';
+  if (bmi < 25) return 'Healthy';
+  if (bmi < 30) return 'Overweight';
+  return 'Obese';
+}
+function getBmiClass(bmi: number) {
+  if (bmi < 18.5) return 'bg-blue-100 text-blue-700';
+  if (bmi < 25) return 'bg-green-100 text-green-700';
+  if (bmi < 30) return 'bg-yellow-100 text-yellow-700';
+  return 'bg-red-100 text-red-700';
+}
