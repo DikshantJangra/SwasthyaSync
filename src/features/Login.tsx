@@ -30,10 +30,10 @@ const Login = () => {
         navigate('/dashboard')
         
     }
-    const handleSignInWithGoogle = async(e:React.FormEvent)=>{
-        e.preventDefault();
-        console.log('pending')
-    }
+    // const handleSignInWithGoogle = async(e:React.FormEvent)=>{
+    //     e.preventDefault();
+    //     console.log('pending')
+    // }
     useEffect(()=>{
         const handleAuthRedirect = async()=>{
           const{ data, error } = await supabase.auth.getSession();
@@ -92,9 +92,9 @@ const Login = () => {
                         </div>
                         <div className='pt-5 pb-2 flex flex-col md:flex-row justify-center items-center gap-2'>
                             <button type="submit" className='bg-[#FF4A20] text-white font-semibold cursor-pointer px-4 py-2 rounded-lg mr-3'>Log in</button>
-                            <button onClick={handleSignInWithGoogle} className='bg-[#FF4A20] font-semibold text-white cursor-pointer px-4 py-2 rounded-lg'>
+                            {/* <button onClick={handleSignInWithGoogle} className='bg-[#FF4A20] font-semibold text-white cursor-pointer px-4 py-2 rounded-lg'>
                                 <img className='inline mr-2 h-6' src="/GoogleIco.webp" alt="Google Icon" /> Sign in with Google
-                            </button>
+                            </button> */}
                         </div>
                         <p>Not a user? <Link to={'/SignUp'}><span className='underline'>Sign up</span></Link></p>
                     </form>

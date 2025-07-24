@@ -3,14 +3,14 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 
 const AppLayout = () => {
-  return (
+    return (
     <div className="flex h-screen">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Outlet />
       </main>
     </div>
-  );
+    );
 };
 
 export default AppLayout;

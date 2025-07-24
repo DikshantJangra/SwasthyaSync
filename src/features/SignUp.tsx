@@ -77,19 +77,19 @@ const SignUp = () => {
 
     
       // Google Sign-Up
-      const handleGoogleSignup = async () => {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-        });
-        console.log(data)
+      // const handleGoogleSignup = async () => {
+      //   const { data, error } = await supabase.auth.signInWithOAuth({
+      //     provider: 'google',
+      //   });
+      //   console.log(data)
     
-        if (error) {
-          setError(error.message);
-          clearError();
-        } else {
-          console.log('Redirecting to Google sign-in...');
-        }
-      };
+      //   if (error) {
+      //     setError(error.message);
+      //     clearError();
+      //   } else {
+      //     console.log('Redirecting to Google sign-in...');
+      //   }
+      // };
       
       useEffect(()=>{
         const handleAuthRedirect = async()=>{
@@ -177,9 +177,9 @@ const SignUp = () => {
                         {error && <p className='absolute bottom-30 text-red-600'>{error}</p>}
                         <div className='mt-8 pb-2 flex flex-col sm:flex-row justify-center items-center gap-2'>
                             <button type="submit" className='bg-[#FF4A20] text-white font-semibold cursor-pointer px-4 py-2 rounded-lg mr-3'>Sign up</button>
-                            <button onClick={handleGoogleSignup} className='bg-[#FF4A20] font-semibold text-white cursor-pointer px-4 py-2 rounded-lg'>
+                            {/* <button onClick={handleGoogleSignup} className='bg-[#FF4A20] font-semibold text-white cursor-pointer px-4 py-2 rounded-lg'>
                                 <img className='inline mr-2 h-6' src="/GoogleIco.webp" alt="Google Icon" /> Sign up with Google
-                            </button>
+                            </button> */}
                         </div>
                         <p>Already a user? <Link to={'/Login'}><span className='underline'>Log in</span></Link></p>
                     </form>
