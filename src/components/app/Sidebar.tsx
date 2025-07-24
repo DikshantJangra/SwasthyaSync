@@ -1,9 +1,11 @@
 // components/Sidebar.tsx
 import { IoBodySharp } from 'react-icons/io5';
 import { FaGlassWater } from 'react-icons/fa6';
-import { GiMuscularTorso } from 'react-icons/gi';
-import { MdRestaurantMenu } from 'react-icons/md';
 import { Link, useLocation } from 'react-router-dom';
+import { RiHealthBookLine } from 'react-icons/ri';
+import { FaStethoscope } from 'react-icons/fa6';
+// import { MdRestaurantMenu } from 'react-icons/md';
+// import { GiMuscularTorso } from 'react-icons/gi';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -11,8 +13,10 @@ const Sidebar = () => {
   const buttons = [
     { icon: <IoBodySharp size={25} />, to: '/dashboard', label: 'Dashboard' },
     { icon: <FaGlassWater size={25} />, to: '/hydration', label: 'Hydration' },
-    { icon: <GiMuscularTorso size={25} />, to: '/body', label: 'Body' },
-    { icon: <MdRestaurantMenu size={25} />, to: '/nutrition', label: 'Nutrition' },
+    { icon: <RiHealthBookLine size={25} />, to: '/health-vault', label: 'Health Vault' },
+    { icon: <FaStethoscope size={25} />, to: '/doctor-meetup', label: 'Doctor Meet ups' },
+    // { icon: <GiMuscularTorso size={25} />, to: '/body', label: 'Body' },
+    // { icon: <MdRestaurantMenu size={25} />, to: '/nutrition', label: 'Nutrition' },
   ];
 
   return (

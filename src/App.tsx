@@ -4,13 +4,18 @@ import Login from "./features/Login";
 import SignUp from "./features/SignUp";
 import Dashboard from "./pages/app/Dashboard";
 import AppLayout from "./components/app/AppLayout";
+import Hydration from "./pages/app/Hydration";
+import HealthVault from "./pages/app/HealthVault";
+import DoctorMeetups from "./pages/app/DoctorMeetups";
 
 const routeList = [
   { path: '/', element: <Index />, protected: false },
   { path: '/login', element: <Login />, protected: false },
   { path: '/signup', element: <SignUp />, protected: false },
   { path: '/dashboard', element: <Dashboard />, protected: true },
-  // Add more protected routes here later
+  { path: '/hydration', element: <Hydration />, protected: true },
+  { path: '/health-vault', element: <HealthVault />, protected: true },
+  { path: '/doctor-meetup', element: <DoctorMeetups />, protected: true },
 ];
 
 const App = () => {
@@ -20,12 +25,10 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes */}
         {publicRoutes.map(({ path, element }) => (
           <Route key={path} path={path} element={element} />
         ))}
 
-        {/* Protected Routes (under AppLayout) */}
         <Route path="/" element={<AppLayout />}>
           {protectedRoutes.map(({ path, element }) => (
             <Route key={path} path={path.slice(1)} element={element} />

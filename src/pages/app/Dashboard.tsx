@@ -120,32 +120,56 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left/Main Section */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          {/* Day at a Glance */}
-          <div className="bg-white rounded-2xl shadow p-6">
-            <h2 className="text-lg font-semibold mb-4">Your Day at a Glance</h2>
-            <div className="flex flex-col sm:flex-row justify-around gap-6">
-              <CircularProgress value={70} color="#2563eb" label="Health Score" />
-              <CircularProgress value={80} color="#22c55e" label="Activity" />
-              <CircularProgress value={65} color="#a21caf" label="Sleep" />
+          {/* Health Metrics Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            {/* Height Card */}
+            <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
+              <img src="/healthTrack.svg" alt="Height" className="h-14 mb-2" />
+              <div className="text-lg font-semibold">Height</div>
+              <div className="text-2xl font-bold text-blue-600">-- cm</div>
+              <button className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 transition">Add Height</button>
+            </div>
+            {/* Weight Card */}
+            <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
+              <img src="/healthVault.svg" alt="Weight" className="h-14 mb-2" />
+              <div className="text-lg font-semibold">Weight</div>
+              <div className="text-2xl font-bold text-green-600">-- kg</div>
+              <button className="mt-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium hover:bg-green-200 transition">Add Weight</button>
+            </div>
+            {/* Blood Group Card */}
+            <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
+              <img src="/healthRecords.svg" alt="Blood Group" className="h-14 mb-2" />
+              <div className="text-lg font-semibold">Blood Group</div>
+              <div className="text-2xl font-bold text-red-600">--</div>
+              <button className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium hover:bg-red-200 transition">Add Blood Group</button>
+            </div>
+            {/* BMI Card */}
+            <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
+              <img src="/healthAccess.svg" alt="BMI" className="h-14 mb-2" />
+              <div className="text-lg font-semibold">BMI</div>
+              <div className="text-2xl font-bold text-purple-600">--</div>
+              <div className="text-xs text-gray-500">Add height and weight to calculate BMI</div>
             </div>
           </div>
 
           {/* Activity & Hydration Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Activity Card */}
+            {/* Upcoming Doctor Visits Card */}
             <div className="bg-white rounded-2xl shadow p-6 flex flex-col gap-2">
               <div className="flex items-center gap-2 mb-2">
-                <span className="bg-green-100 text-green-600 rounded-full p-2">
-                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M13 7h-2V3a1 1 0 10-2 0v4H7a1 1 0 100 2h2v4a1 1 0 102 0V9h2a1 1 0 100-2z" fill="#22c55e"/></svg>
+                <span className="bg-blue-100 text-blue-600 rounded-full p-2">
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M12 2a7 7 0 017 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 01-2 0v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 017-7zm0 18a2 2 0 002-2h-4a2 2 0 002 2z" fill="#2563eb"/></svg>
                 </span>
-                <span className="font-semibold">Activity</span>
-                <span className="ml-auto text-xs text-gray-400">Synced</span>
+                <span className="font-semibold">Upcoming Doctor Visits</span>
               </div>
-              <div className="text-2xl font-bold">7,800 <span className="text-gray-400 text-base font-normal">/ 10,000 steps</span></div>
-              <div className="text-sm text-gray-500 mb-2">Keep moving! Just 2,200 steps to go!</div>
-              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full bg-green-400 rounded-full" style={{ width: '78%' }}></div>
+              <div className="divide-y divide-gray-200">
+                <div className="flex items-center py-2">
+                  <span className="font-semibold text-base text-gray-900">Dr. Meera Kapoor</span>
+                  <span className="ml-auto text-gray-500 text-sm">22 July 2024</span>
+                  <a href="#" className="ml-6 text-blue-600 text-sm font-medium hover:underline whitespace-nowrap">View Details</a>
+                </div>
               </div>
+              <div className="text-sm text-gray-500 mt-2">Stay prepared for your next appointment!</div>
             </div>
             {/* Hydration Card */}
             <div className="bg-white rounded-2xl shadow p-6 flex flex-col gap-2">
