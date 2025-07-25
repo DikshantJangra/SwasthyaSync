@@ -20,7 +20,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="h-auto md:h-screen w-full md:w-50 flex flex-col md:justify-start md:items-stretch items-center bg-white/30 backdrop-blur text-white">
+    <aside className="h-40 md:h-screen w-full md:w-50 flex flex-col md:justify-start md:items-stretch items-center backdrop-blur text-white">
       <div className="flex justify-center items-center gap-2 px-4 py-2 md:pl-8 md:pt-5">
         <img src="/ssiconO.svg" alt="Swāsthya Sync" className='h-10 sm:h-13 max-w-full' />
         <h1 className="font-black text-lg sm:text-lg md:text-xl lg:text-2xl leading-none text-[#FF4A20]">Swāsthya <br />Sync</h1>
