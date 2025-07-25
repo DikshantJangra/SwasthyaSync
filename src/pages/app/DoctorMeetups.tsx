@@ -1,4 +1,3 @@
-import { FaUserMd, FaCalendarAlt, FaClock, FaMapMarkerAlt, FaChevronRight } from 'react-icons/fa';
 import { useState } from 'react';
 
 const initialMeetups = [

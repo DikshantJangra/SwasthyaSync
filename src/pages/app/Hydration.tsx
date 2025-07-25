@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaRegCalendarAlt, FaGlassWhiskey, FaCoffee, FaLeaf, FaLemon, FaPlus, FaGlassMartiniAlt, FaWineBottle, FaAppleAlt } from 'react-icons/fa';
+import { FaGlassWhiskey, FaCoffee, FaLeaf, FaLemon, FaPlus, FaGlassMartiniAlt, FaWineBottle, FaAppleAlt } from 'react-icons/fa';
 
 const periodOptions = [
   { label: 'daily' },
@@ -49,11 +49,6 @@ const Hydration = () => {
   const [editMl, setEditMl] = useState('');
 
   const today = new Date();
-  const formatted = today.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
 
   const handleAddClick = () => setShowModal(true);
   const handleCloseModal = () => {
@@ -82,12 +77,6 @@ const Hydration = () => {
     setEditMl('');
   };
   const handleEditMlChange = (e: React.ChangeEvent<HTMLInputElement>) => setEditMl(e.target.value);
-  const handleUpdateAmount = (idx: number) => {
-    if (!editMl || isNaN(Number(editMl))) return;
-    const liters = (Number(editMl) / 1000).toFixed(2);
-    setHydrationStats(hydrationStats.map((stat, i) => i === idx ? { ...stat, value: liters } : stat));
-    setEditingIndex(null);
-  };
   const handleAddAmount = (idx: number) => {
     if (!editMl || isNaN(Number(editMl))) return;
     const prev = Number(hydrationStats[idx].value || 0);

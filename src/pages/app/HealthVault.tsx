@@ -3,12 +3,6 @@ import { FaFlask, FaFilePrescription, FaUserMd, FaSyringe, FaSearch, FaPlus, FaC
 import React, { useRef } from 'react';
 import type { ChangeEvent, KeyboardEvent, FormEvent } from 'react';
 
-const navLinks = [
-  { label: 'Dashboard', active: false },
-  { label: 'Health Vault', active: true },
-  { label: 'Profile', active: false },
-];
-
 const categories = ['All Categories', 'Lab Report', 'Prescription', 'Consultation', 'Vaccination'];
 const sortOptions = ['Date (Newest)', 'Date (Oldest)', 'A-Z', 'Z-A'];
 
@@ -68,7 +62,6 @@ const HealthVault = () => {
     notes: '',
   });
   const [formError, setFormError] = useState('');
-  const [formSuccess, setFormSuccess] = useState(false);
   const tagInputRef = useRef<HTMLInputElement>(null);
   const [records, setRecords] = useState(initialRecords);
   const [viewRecord, setViewRecord] = useState<null | typeof records[0]>(null);
