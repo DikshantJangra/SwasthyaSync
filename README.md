@@ -137,7 +137,7 @@ We’re building this for real people — if you have any thoughts, share via:
 
 - [Issues](https://github.com/DikshantJangra/SwasthyaSync/issues)
 - [Discussions](https://github.com/DikshantJangra/SwasthyaSync/issues)
-- [email@example.com](mailto:dikshant.jangra2024@nst.rishihood.edu.in)
+- [dikshant.jangra2024@nst.rishihood.edu.in](mailto:dikshant.jangra2024@nst.rishihood.edu.in)
 - [@DikshantJangraa](https://x.com/DikshantJangraa)
 
 ---
