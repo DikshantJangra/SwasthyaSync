@@ -1,17 +1,58 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabaseClient';
 
-const initialMeetups = [
-  { doctor: 'Dr. Meera Kapoor', date: '2024-07-22', type: 'Upcoming', notes: '' },
-  { doctor: 'Dr. Rahul Singh', date: '2024-07-15', type: 'Past', notes: '' },
-  { doctor: 'Dr. Anjali Sharma', date: '2024-07-02', type: 'Past', notes: '' },
-];
+interface MeetupType {
+  doctor: string;
+  date: string;
+  type: string;
+  notes: string;
+}
 
 const DoctorMeetups = () => {
-  const [meetups, setMeetups] = useState(initialMeetups);
+  const [meetups, setMeetups] = useState<MeetupType[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showDetails, setShowDetails] = useState<null | typeof meetups[0]>(null);
+  const [showDetails, setShowDetails] = useState<MeetupType | null>(null);
   const [form, setForm] = useState({ doctor: '', date: '', type: 'Upcoming', notes: '' });
   const [formError, setFormError] = useState('');
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Fetch meetups from Supabase on mount
+  useEffect(() => {
+    const fetchMeetups = async () => {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error('Session error:', sessionError.message);
+        return;
+      }
+      const user = session?.user;
+      if (!user) {
+        console.warn('No authenticated user found');
+        return;
+      }
+      setUserId(user.id);
+      const { data, error } = await supabase
+        .from('doctor_meetups')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false });
+      if (error) {
+        console.error('Error fetching doctor meetups:', error.message);
+        return;
+      }
+      // Map DB meetups to UI meetups
+      const mapped = data.map((m: any) => ({
+        doctor: m.doctor,
+        date: m.date,
+        type: m.type,
+        notes: m.notes || '',
+      }));
+      setMeetups(mapped);
+    };
+    fetchMeetups();
+  }, []);
 
   // Split meetups by type and date
   const today = new Date().toISOString().slice(0, 10);
@@ -23,26 +64,62 @@ const DoctorMeetups = () => {
     setForm(f => ({ ...f, [name]: value }));
     setFormError('');
   };
-  const handleAddMeetup = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddMeetup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!form.doctor || !form.date) {
       setFormError('Please fill all required fields.');
       return;
     }
-    // Determine type based on date if not set
+    if (!userId) {
+      setFormError('User not authenticated.');
+      return;
+    }
+    // Determine type based on date
     let type = form.type;
     if (form.date < today) type = 'Past';
     else type = 'Upcoming';
-    setMeetups(prev => [
-      { doctor: form.doctor, date: form.date, type, notes: form.notes },
-      ...prev,
+    // Insert into Supabase
+    const { error } = await supabase.from('doctor_meetups').insert([
+      {
+        user_id: userId,
+        doctor: form.doctor,
+        date: form.date,
+        type,
+        notes: form.notes,
+      }
     ]);
+    if (error) {
+      setFormError('Error saving meetup: ' + error.message);
+      return;
+    }
+    setFormError('');
     setShowAddModal(false);
     setForm({ doctor: '', date: '', type: 'Upcoming', notes: '' });
+    // Refetch meetups
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
+    if (user) {
+      const { data, error } = await supabase
+        .from('doctor_meetups')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false });
+      if (!error) {
+        const mapped = data.map((m: any) => ({
+          doctor: m.doctor,
+          date: m.date,
+          type: m.type,
+          notes: m.notes || '',
+        }));
+        setMeetups(mapped);
+      }
+    }
   };
 
   return (
-    <div className="min-h-screen px-4 py-6">
+    <div className="h-screen px-4 py-6">
       {/* Creative Add Meetup */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-black">Plan or Log a Doctor Meetup</h1>

@@ -1,33 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaFlask, FaFilePrescription, FaUserMd, FaSyringe, FaSearch, FaPlus, FaChevronDown, FaHospital, FaTooth, FaEye, FaFileMedical, FaFileInvoiceDollar, FaFileAlt, FaXRay } from 'react-icons/fa';
 import React, { useRef } from 'react';
+import { supabase } from '../../lib/supabaseClient';
 import type { ChangeEvent, KeyboardEvent, FormEvent } from 'react';
 
 const categories = ['All Categories', 'Lab Report', 'Prescription', 'Consultation', 'Vaccination'];
 const sortOptions = ['Date (Newest)', 'Date (Oldest)', 'A-Z', 'Z-A'];
-
-const initialRecords = [
-  {
-    icon: <FaFlask className="text-blue-400 text-2xl" />, color: 'bg-blue-100',
-    title: 'Complete Blood Count', type: 'Lab Report', date: 'Oct 15, 2023',
-    doctor: 'Dr. Anjali Sharma', tags: ['#AnnualCheckup', '#Routine'], link: '#', notes: ''
-  },
-  {
-    icon: <FaFilePrescription className="text-green-500 text-2xl" />, color: 'bg-green-100',
-    title: 'Prescription - Fever', type: 'Prescription', date: 'Sep 28, 2023',
-    doctor: 'Dr. Raj Patel', tags: ['#Fever', '#DrPatel'], link: '#', notes: ''
-  },
-  {
-    icon: <FaUserMd className="text-purple-500 text-2xl" />, color: 'bg-purple-100',
-    title: 'Dermatology Follow-up', type: 'Consultation', date: 'Aug 05, 2023',
-    doctor: 'Dr. Priya Singh', tags: ['#SkinCare'], link: '#', notes: ''
-  },
-  {
-    icon: <FaSyringe className="text-yellow-600 text-2xl" />, color: 'bg-yellow-100',
-    title: 'COVID-19 Booster', type: 'Vaccination', date: 'Jul 12, 2023',
-    doctor: 'City Health Center', tags: ['#Immunization'], link: '#', notes: ''
-  },
-];
 
 const recordCategories = [
   'Lab Report', 'Prescription', 'Doctor Consultation', 'Hospitalization', 'Vaccination',
@@ -36,6 +14,18 @@ const recordCategories = [
 ];
 
 const tagSuggestions = ['Allergy', 'Blood Test', 'Cardiology', 'Dermatology', 'ENT', 'Diabetes', 'Fever', 'Wellness', 'Cold'];
+
+interface RecordType {
+  icon: React.ReactElement;
+  color: string;
+  title: string;
+  type: string;
+  date: string;
+  doctor: string;
+  tags: string[];
+  link: string;
+  notes: string;
+}
 
 const HealthVault = () => {
   const [category, setCategory] = useState(categories[0]);
@@ -63,8 +53,111 @@ const HealthVault = () => {
   });
   const [formError, setFormError] = useState('');
   const tagInputRef = useRef<HTMLInputElement>(null);
-  const [records, setRecords] = useState(initialRecords);
-  const [viewRecord, setViewRecord] = useState<null | typeof records[0]>(null);
+  const [records, setRecords] = useState<RecordType[]>([]);
+  const [viewRecord, setViewRecord] = useState<RecordType | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Fetch records from Supabase on mount
+  useEffect(() => {
+    const fetchRecords = async () => {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error('Session error:', sessionError.message);
+        return;
+      }
+      const user = session?.user;
+      if (!user) {
+        console.warn('No authenticated user found');
+        return;
+      }
+      setUserId(user.id);
+      const { data, error } = await supabase
+        .from('health_vault')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false });
+      if (error) {
+        console.error('Error fetching health vault records:', error.message);
+        return;
+      }
+      // Map DB records to UI records
+      const mapped = data.map((rec: any) => {
+        // Assign icon and color based on category
+        let icon: React.ReactElement = <FaFilePrescription className="text-gray-500 text-2xl" />;
+        let color = 'bg-gray-100';
+        switch (rec.category) {
+          case 'Lab Report':
+            icon = <FaFlask className="text-blue-400 text-2xl" />;
+            color = 'bg-blue-100';
+            break;
+          case 'Prescription':
+            icon = <FaFilePrescription className="text-green-500 text-2xl" />;
+            color = 'bg-green-100';
+            break;
+          case 'Doctor Consultation':
+            icon = <FaUserMd className="text-purple-500 text-2xl" />;
+            color = 'bg-purple-100';
+            break;
+          case 'Vaccination':
+            icon = <FaSyringe className="text-yellow-600 text-2xl" />;
+            color = 'bg-yellow-100';
+            break;
+          case 'Hospitalization':
+            icon = <FaHospital className="text-pink-500 text-2xl" />;
+            color = 'bg-pink-100';
+            break;
+          case 'Imaging Scan (X-ray, MRI, CT)':
+            icon = <FaXRay className="text-cyan-600 text-2xl" />;
+            color = 'bg-cyan-100';
+            break;
+          case 'Dental Record':
+            icon = <FaTooth className="text-orange-500 text-2xl" />;
+            color = 'bg-orange-100';
+            break;
+          case 'Eye Check-up':
+            icon = <FaEye className="text-blue-600 text-2xl" />;
+            color = 'bg-blue-200';
+            break;
+          case 'Discharge Summary':
+            icon = <FaFileMedical className="text-indigo-500 text-2xl" />;
+            color = 'bg-indigo-100';
+            break;
+          case 'Medical Bill':
+            icon = <FaFileInvoiceDollar className="text-amber-600 text-2xl" />;
+            color = 'bg-amber-100';
+            break;
+          case 'Insurance Document':
+            icon = <FaFileAlt className="text-lime-600 text-2xl" />;
+            color = 'bg-lime-100';
+            break;
+          case 'Other':
+          default:
+            icon = <FaFilePrescription className="text-gray-500 text-2xl" />;
+            color = 'bg-gray-100';
+            break;
+        }
+        // Format date as e.g. 'Oct 15, 2023'
+        const dateObj = new Date(rec.date);
+        const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+        return {
+          icon,
+          color,
+          title: rec.title || rec.category,
+          type: rec.category,
+          date: formattedDate,
+          doctor: rec.doctor,
+          tags: rec.tags ? rec.tags.map((t: string) => t.startsWith('#') ? t : `#${t}`) : [],
+          link: '#',
+          notes: rec.notes,
+        };
+      });
+      setRecords(mapped);
+    };
+    fetchRecords();
+  }, []);
 
   // Filter records by category
   let filteredRecords = records.filter(rec =>
@@ -111,7 +204,7 @@ const HealthVault = () => {
   };
 
   // Save record
-  const handleSaveRecord = (e: FormEvent<HTMLFormElement>) => {
+  const handleSaveRecord = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!form.category) {
       setFormError('Please select a category.');
@@ -121,77 +214,27 @@ const HealthVault = () => {
       setFormError('Please select a date of service.');
       return;
     }
-    // Assign icon and color based on category
-    let icon: React.ReactElement = <FaFilePrescription className="text-gray-500 text-2xl" />;
-    let color = 'bg-gray-100';
-    switch (form.category) {
-      case 'Lab Report':
-        icon = <FaFlask className="text-blue-400 text-2xl" />;
-        color = 'bg-blue-100';
-        break;
-      case 'Prescription':
-        icon = <FaFilePrescription className="text-green-500 text-2xl" />;
-        color = 'bg-green-100';
-        break;
-      case 'Doctor Consultation':
-        icon = <FaUserMd className="text-purple-500 text-2xl" />;
-        color = 'bg-purple-100';
-        break;
-      case 'Vaccination':
-        icon = <FaSyringe className="text-yellow-600 text-2xl" />;
-        color = 'bg-yellow-100';
-        break;
-      case 'Hospitalization':
-        icon = <FaHospital className="text-pink-500 text-2xl" />;
-        color = 'bg-pink-100';
-        break;
-      case 'Imaging Scan (X-ray, MRI, CT)':
-        icon = <FaXRay className="text-cyan-600 text-2xl" />;
-        color = 'bg-cyan-100';
-        break;
-      case 'Dental Record':
-        icon = <FaTooth className="text-orange-500 text-2xl" />;
-        color = 'bg-orange-100';
-        break;
-      case 'Eye Check-up':
-        icon = <FaEye className="text-blue-600 text-2xl" />;
-        color = 'bg-blue-200';
-        break;
-      case 'Discharge Summary':
-        icon = <FaFileMedical className="text-indigo-500 text-2xl" />;
-        color = 'bg-indigo-100';
-        break;
-      case 'Medical Bill':
-        icon = <FaFileInvoiceDollar className="text-amber-600 text-2xl" />;
-        color = 'bg-amber-100';
-        break;
-      case 'Insurance Document':
-        icon = <FaFileAlt className="text-lime-600 text-2xl" />;
-        color = 'bg-lime-100';
-        break;
-      case 'Other':
-      default:
-        icon = <FaFilePrescription className="text-gray-500 text-2xl" />;
-        color = 'bg-gray-100';
-        break;
+    if (!userId) {
+      setFormError('User not authenticated.');
+      return;
     }
-    // Format date as e.g. 'Oct 15, 2023'
-    const dateObj = new Date(form.date);
-    const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
-    setRecords(prev => [
+    // Insert into Supabase
+    const { error } = await supabase.from('health_vault').insert([
       {
-        icon,
-        color,
-        title: form.title || form.category,
-        type: form.category,
-        date: formattedDate,
+        user_id: userId,
+        category: form.category,
+        title: form.title,
         doctor: form.doctor,
-        tags: form.tags.map(t => t.startsWith('#') ? t : `#${t}`),
-        link: '#',
+        date: form.date,
+        tags: form.tags,
         notes: form.notes,
-      },
-      ...prev,
+      }
     ]);
+    if (error) {
+      setFormError('Error saving record: ' + error.message);
+      return;
+    }
+    setFormError('');
     setShowAddModal(false);
     setForm({
       category: '',
@@ -202,10 +245,94 @@ const HealthVault = () => {
       tagInput: '',
       notes: '',
     });
+    // Refetch records
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
+    if (user) {
+      const { data, error } = await supabase
+        .from('health_vault')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false });
+      if (!error) {
+        // Map DB records to UI records (same as above)
+        const mapped = data.map((rec: any) => {
+          let icon: React.ReactElement = <FaFilePrescription className="text-gray-500 text-2xl" />;
+          let color = 'bg-gray-100';
+          switch (rec.category) {
+            case 'Lab Report':
+              icon = <FaFlask className="text-blue-400 text-2xl" />;
+              color = 'bg-blue-100';
+              break;
+            case 'Prescription':
+              icon = <FaFilePrescription className="text-green-500 text-2xl" />;
+              color = 'bg-green-100';
+              break;
+            case 'Doctor Consultation':
+              icon = <FaUserMd className="text-purple-500 text-2xl" />;
+              color = 'bg-purple-100';
+              break;
+            case 'Vaccination':
+              icon = <FaSyringe className="text-yellow-600 text-2xl" />;
+              color = 'bg-yellow-100';
+              break;
+            case 'Hospitalization':
+              icon = <FaHospital className="text-pink-500 text-2xl" />;
+              color = 'bg-pink-100';
+              break;
+            case 'Imaging Scan (X-ray, MRI, CT)':
+              icon = <FaXRay className="text-cyan-600 text-2xl" />;
+              color = 'bg-cyan-100';
+              break;
+            case 'Dental Record':
+              icon = <FaTooth className="text-orange-500 text-2xl" />;
+              color = 'bg-orange-100';
+              break;
+            case 'Eye Check-up':
+              icon = <FaEye className="text-blue-600 text-2xl" />;
+              color = 'bg-blue-200';
+              break;
+            case 'Discharge Summary':
+              icon = <FaFileMedical className="text-indigo-500 text-2xl" />;
+              color = 'bg-indigo-100';
+              break;
+            case 'Medical Bill':
+              icon = <FaFileInvoiceDollar className="text-amber-600 text-2xl" />;
+              color = 'bg-amber-100';
+              break;
+            case 'Insurance Document':
+              icon = <FaFileAlt className="text-lime-600 text-2xl" />;
+              color = 'bg-lime-100';
+              break;
+            case 'Other':
+            default:
+              icon = <FaFilePrescription className="text-gray-500 text-2xl" />;
+              color = 'bg-gray-100';
+              break;
+          }
+          const dateObj = new Date(rec.date);
+          const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+          return {
+            icon,
+            color,
+            title: rec.title || rec.category,
+            type: rec.category,
+            date: formattedDate,
+            doctor: rec.doctor,
+            tags: rec.tags ? rec.tags.map((t: string) => t.startsWith('#') ? t : `#${t}`) : [],
+            link: '#',
+            notes: rec.notes,
+          };
+        });
+        setRecords(mapped);
+      }
+    }
   };
 
   return (
-    <div className="min-h-screen px-4 py-6">
+    <div className="h-screen bg-gray-50 px-4 py-6">
       {/* Header & Navigation - removed as per instructions */}
       {/* Title & Subtitle */}
       <div className="mb-2">
@@ -441,34 +568,38 @@ const HealthVault = () => {
       )}
 
       {/* Records Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredRecords.map((rec, idx) => (
-          <div key={idx} className="bg-white rounded-2xl shadow p-5 flex flex-col gap-2 border border-gray-100 hover:shadow-lg transition-all">
-            <div className="flex items-center gap-3 mb-2">
-              <div className={`w-12 h-12 flex items-center justify-center rounded-full ${rec.color}`}>{rec.icon}</div>
-              <div className="ml-auto text-gray-400 font-medium text-sm">{rec.date}</div>
+      {filteredRecords.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredRecords.map((rec, idx) => (
+            <div key={idx} className="bg-white rounded-2xl shadow p-5 flex flex-col gap-2 border border-gray-100 hover:shadow-lg transition-all">
+              <div className="flex items-center gap-3 mb-2">
+                <div className={`w-12 h-12 flex items-center justify-center rounded-full ${rec.color}`}>{rec.icon}</div>
+                <div className="ml-auto text-gray-400 font-medium text-sm">{rec.date}</div>
+              </div>
+              <div className="font-bold text-lg text-gray-900">{rec.title}</div>
+              <div className="text-gray-500 text-sm mb-1">{rec.type}</div>
+              <div className="text-gray-700 text-sm">
+                <span className="font-semibold">{rec.type === 'Vaccination' ? 'Clinic' : 'Doctor'}:</span> {rec.doctor}
+              </div>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {rec.tags.map(tag => (
+                  <span key={tag} className="bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-xs font-medium">{tag}</span>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="mt-3 text-orange-500 font-semibold text-sm hover:underline self-end"
+                onClick={() => setViewRecord(rec)}
+                aria-label="View Document"
+              >
+                View Document
+              </button>
             </div>
-            <div className="font-bold text-lg text-gray-900">{rec.title}</div>
-            <div className="text-gray-500 text-sm mb-1">{rec.type}</div>
-            <div className="text-gray-700 text-sm">
-              <span className="font-semibold">{rec.type === 'Vaccination' ? 'Clinic' : 'Doctor'}:</span> {rec.doctor}
-            </div>
-            <div className="flex flex-wrap gap-2 mt-1">
-              {rec.tags.map(tag => (
-                <span key={tag} className="bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-xs font-medium">{tag}</span>
-              ))}
-            </div>
-            <button
-              type="button"
-              className="mt-3 text-orange-500 font-semibold text-sm hover:underline self-end"
-              onClick={() => setViewRecord(rec)}
-              aria-label="View Document"
-            >
-              View Document
-            </button>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center text-gray-400 text-lg my-12">No records yet. Add your first health document!</div>
+      )}
       {/* View Document Modal */}
       {viewRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
