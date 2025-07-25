@@ -48,8 +48,6 @@ const Hydration = () => {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editMl, setEditMl] = useState('');
 
-  const today = new Date();
-
   const handleAddClick = () => setShowModal(true);
   const handleCloseModal = () => {
     setShowModal(false);
