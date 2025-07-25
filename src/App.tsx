@@ -1,31 +1,42 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom"
-import Index from "./pages/Index"
-import Login from "./features/Login"
-import SignUp from "./features/SignUp"
-import Dashboard from "./pages/app/Dashboard"
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Index from "./pages/Index";
+import Login from "./features/Login";
+import SignUp from "./features/SignUp";
+import Dashboard from "./pages/app/Dashboard";
+import AppLayout from "./components/app/AppLayout";
+import Hydration from "./pages/app/Hydration";
+import HealthVault from "./pages/app/HealthVault";
+import DoctorMeetups from "./pages/app/DoctorMeetups";
 
 const routeList = [
-  { path: '/', element: <Index />, protected: false, },
-  { path: '/Login', element: <Login />, protected: false, },
-  { path: '/SignUp', element: <SignUp />, protected: false, },
-  { path: '/dashboard', element: <Dashboard />, protected: false, },
-]
+  { path: '/', element: <Index />, protected: false },
+  { path: '/login', element: <Login />, protected: false },
+  { path: '/signup', element: <SignUp />, protected: false },
+  { path: '/dashboard', element: <Dashboard />, protected: true },
+  { path: '/hydration', element: <Hydration />, protected: true },
+  { path: '/health-vault', element: <HealthVault />, protected: true },
+  { path: '/doctor-meetup', element: <DoctorMeetups />, protected: true },
+];
 
-const App = ()=>{
-  return(
-    <>
+const App = () => {
+  const publicRoutes = routeList.filter(route => !route.protected);
+  const protectedRoutes = routeList.filter(route => route.protected);
+
+  return (
     <BrowserRouter>
       <Routes>
-        {routeList.map(({path, element, protected: isProtected})=>(
-          <Route
-            key={path}
-            path={path}
-            element={!isProtected && element}
-          />
+        {publicRoutes.map(({ path, element }) => (
+          <Route key={path} path={path} element={element} />
+        ))}
+
+        <Route path="/" element={<AppLayout />}>
+          {protectedRoutes.map(({ path, element }) => (
+            <Route key={path} path={path.slice(1)} element={element} />
           ))}
+        </Route>
       </Routes>
     </BrowserRouter>
-    </>
-  )
-}
-export default App
+  );
+};
+
+export default App;

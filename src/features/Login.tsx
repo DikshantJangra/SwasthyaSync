@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import { AiOutlineUserSwitch, AiOutlineLock } from "react-icons/ai";
 import { supabase } from '../lib/supabaseClient';
@@ -30,13 +30,27 @@ const Login = () => {
         navigate('/dashboard')
         
     }
-    const handleSignInWithGoogle = async(e:React.FormEvent)=>{
-        e.preventDefault();
-        console.log('pending')
-    }
+    // const handleSignInWithGoogle = async(e:React.FormEvent)=>{
+    //     e.preventDefault();
+    //     console.log('pending')
+    // }
+    useEffect(()=>{
+        const handleAuthRedirect = async()=>{
+          const{ data, error } = await supabase.auth.getSession();
+          if(error){
+            console.log(error)
+          }else if(data.session){
+            console.log(data.session.user)
+            navigate('/dashboard')
+          }else{
+            console.log('No Login detected')
+          }
+        }
+        handleAuthRedirect();
+      },[])
   return (
     <>
-        <div className='min-h-dvh w-full font-Poppins bg-[#FF4A20] grid md:grid-cols-2 grid-cols-1 grid-rows-3'>
+        <div className='min-h-dvh w-full font-Poppins bg-[#FF4A20] grid md:grid-cols-2 grid-cols-1 grid-rows-3 sm:grid-rows-1'>
             <div className='md:bg-gradient-to-r from-[#ff0000] to-[rgba(0,0,0,0)] md:pt-30 pt-10 md:pl-10'>
                 <p className='text-white text-center text-3xl sm:text-5xl md:text-7xl leading-none tracking-tight font-bold'>YOUR HEALTH <br /> IS A PRIORITY!</p>
                 <img className='hidden md:block mt-30 mb-0 ml-auto mr-auto h-110' src="/wellH2o.png" alt="H2O" />
@@ -78,9 +92,9 @@ const Login = () => {
                         </div>
                         <div className='pt-5 pb-2 flex flex-col md:flex-row justify-center items-center gap-2'>
                             <button type="submit" className='bg-[#FF4A20] text-white font-semibold cursor-pointer px-4 py-2 rounded-lg mr-3'>Log in</button>
-                            <button onClick={handleSignInWithGoogle} className='bg-[#FF4A20] font-semibold text-white cursor-pointer px-4 py-2 rounded-lg'>
+                            {/* <button onClick={handleSignInWithGoogle} className='bg-[#FF4A20] font-semibold text-white cursor-pointer px-4 py-2 rounded-lg'>
                                 <img className='inline mr-2 h-6' src="/GoogleIco.webp" alt="Google Icon" /> Sign in with Google
-                            </button>
+                            </button> */}
                         </div>
                         <p>Not a user? <Link to={'/SignUp'}><span className='underline'>Sign up</span></Link></p>
                     </form>
