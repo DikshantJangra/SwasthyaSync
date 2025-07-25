@@ -20,20 +20,20 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-50 h-screen flex flex-col text-white">
-      <Link to={'/'} className="flex justify-center items-center gap-2 fixed pl-8 pt-5">
+    <aside className="h-auto md:h-screen w-full md:w-50 flex flex-col md:justify-start md:items-stretch items-center bg-transparent text-white">
+      <div className="flex justify-center items-center gap-2 px-4 py-2 md:pl-8 md:pt-5">
         <img src="/ssiconO.svg" alt="Swāsthya Sync" className='h-10 sm:h-13 max-w-full' />
         <h1 className="font-black text-lg sm:text-lg md:text-xl lg:text-2xl leading-none text-[#FF4A20]">Swāsthya <br />Sync</h1>
-      </Link>
-      <nav className="flex flex-col justify-center items-center gap-14 h-full">
+      </div>
+      <nav className="flex flex-row md:flex-col justify-center items-center gap-6 md:gap-14 w-full md:h-full pb-2 md:pb-0">
         {buttons.map((btn) => (
           <Link
             key={btn.to}
             to={btn.to}
             className={`p-3 rounded-full shadow-md hover:bg-[#FF4A20] hover:text-white transition-colors duration-200 
-                ${location.pathname === btn.to ? 'bg-[#FF4A20] text-white' : 'bg-white text-black'}`}
-                title={btn.label}
-            >    
+              ${location.pathname === btn.to ? 'bg-[#FF4A20] text-white' : 'bg-white text-black'}`}
+            title={btn.label}
+          >
             {btn.icon}
           </Link>
         ))}

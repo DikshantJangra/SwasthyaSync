@@ -20,10 +20,19 @@ type HydrationOption = {
   est: string;
 };
 
-const extraOptions: Omit<HydrationOption, 'value'>[] = [
-  { label: 'milk', icon: <FaGlassMartiniAlt className="text-3xl text-yellow-400" />, unit: 'glass', topBg: 'bg-yellow-100', bottomBg: 'bg-yellow-400', bottomText: 'text-white', est: '2 glass' },
-  { label: 'juice', icon: <FaAppleAlt className="text-3xl text-pink-400" />, unit: 'glass', topBg: 'bg-pink-100', bottomBg: 'bg-pink-400', bottomText: 'text-white', est: '2 glass' },
-  { label: 'soda', icon: <FaWineBottle className="text-3xl text-gray-400" />, unit: 'bottle', topBg: 'bg-gray-100', bottomBg: 'bg-gray-400', bottomText: 'text-white', est: '1 bottle' },
+const hydrationCategories: { label: string; icon: React.ReactElement; topBg: string; bottomBg: string; bottomText: string; }[] = [
+  { label: 'Water', icon: <FaGlassWhiskey className="text-3xl text-sky-400" />, topBg: 'bg-sky-100', bottomBg: 'bg-sky-400', bottomText: 'text-white' },
+  { label: 'Electrolytes', icon: <FaLemon className="text-3xl text-yellow-400" />, topBg: 'bg-yellow-100', bottomBg: 'bg-yellow-400', bottomText: 'text-white' },
+  { label: 'Flavored Water', icon: <FaGlassWhiskey className="text-3xl text-pink-400" />, topBg: 'bg-pink-100', bottomBg: 'bg-pink-400', bottomText: 'text-white' },
+  { label: 'Tea', icon: <FaLeaf className="text-3xl text-green-400" />, topBg: 'bg-green-100', bottomBg: 'bg-green-400', bottomText: 'text-white' },
+  { label: 'Coffee', icon: <FaCoffee className="text-3xl text-brown-400" />, topBg: 'bg-yellow-100', bottomBg: 'bg-yellow-400', bottomText: 'text-white' },
+  { label: 'Juice', icon: <FaAppleAlt className="text-3xl text-pink-400" />, topBg: 'bg-pink-100', bottomBg: 'bg-pink-400', bottomText: 'text-white' },
+  { label: 'Milk Drinks', icon: <FaGlassMartiniAlt className="text-3xl text-yellow-400" />, topBg: 'bg-yellow-100', bottomBg: 'bg-yellow-400', bottomText: 'text-white' },
+  { label: 'Smoothies', icon: <FaAppleAlt className="text-3xl text-purple-400" />, topBg: 'bg-purple-100', bottomBg: 'bg-purple-400', bottomText: 'text-white' },
+  { label: 'Functional Drinks', icon: <FaWineBottle className="text-3xl text-gray-400" />, topBg: 'bg-gray-100', bottomBg: 'bg-gray-400', bottomText: 'text-white' },
+  { label: 'Herbal Drinks', icon: <FaLeaf className="text-3xl text-green-400" />, topBg: 'bg-green-100', bottomBg: 'bg-green-400', bottomText: 'text-white' },
+  { label: 'Broths', icon: <FaGlassWhiskey className="text-3xl text-orange-400" />, topBg: 'bg-orange-100', bottomBg: 'bg-orange-400', bottomText: 'text-white' },
+  { label: 'Traditional Drinks', icon: <FaGlassWhiskey className="text-3xl text-blue-400" />, topBg: 'bg-blue-100', bottomBg: 'bg-blue-400', bottomText: 'text-white' },
 ];
 
 const initialHydrationStats: HydrationOption[] = [
@@ -36,8 +45,8 @@ const initialHydrationStats: HydrationOption[] = [
 const Hydration = () => {
   const [hydrationStats, setHydrationStats] = useState<HydrationOption[]>(initialHydrationStats);
   const [showModal, setShowModal] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<Omit<HydrationOption, 'value'> | null>(null);
-  const [inputValue, setInputValue] = useState('');
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editMl, setEditMl] = useState('');
 
   const today = new Date();
   const formatted = today.toLocaleDateString('en-GB', {
@@ -49,43 +58,55 @@ const Hydration = () => {
   const handleAddClick = () => setShowModal(true);
   const handleCloseModal = () => {
     setShowModal(false);
-    setSelectedOption(null);
-    setInputValue('');
   };
-  const handleOptionSelect = (option: Omit<HydrationOption, 'value'>) => setSelectedOption(option);
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value);
-  const handleAddHydration = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!selectedOption || !inputValue) return;
+
+  const handleAddCategory = (category: typeof hydrationCategories[0]) => {
     setHydrationStats([
       ...hydrationStats,
       {
-        ...selectedOption,
-        value: inputValue,
+        icon: category.icon,
+        label: category.label,
+        value: undefined,
+        unit: '',
+        topBg: category.topBg,
+        bottomBg: category.bottomBg,
+        bottomText: category.bottomText,
+        est: '',
       },
     ]);
-    handleCloseModal();
+    setShowModal(false);
+  };
+
+  const handleCardClick = (idx: number) => {
+    setEditingIndex(idx);
+    setEditMl('');
+  };
+  const handleEditMlChange = (e: React.ChangeEvent<HTMLInputElement>) => setEditMl(e.target.value);
+  const handleUpdateAmount = (idx: number) => {
+    if (!editMl || isNaN(Number(editMl))) return;
+    const liters = (Number(editMl) / 1000).toFixed(2);
+    setHydrationStats(hydrationStats.map((stat, i) => i === idx ? { ...stat, value: liters } : stat));
+    setEditingIndex(null);
+  };
+  const handleAddAmount = (idx: number) => {
+    if (!editMl || isNaN(Number(editMl))) return;
+    const prev = Number(hydrationStats[idx].value || 0);
+    const addLiters = Number(editMl) / 1000;
+    const newValue = (prev + addLiters).toFixed(2);
+    setHydrationStats(hydrationStats.map((stat, i) => i === idx ? { ...stat, value: newValue } : stat));
+    setEditingIndex(null);
+  };
+  const handleSubtractAmount = (idx: number) => {
+    if (!editMl || isNaN(Number(editMl))) return;
+    const prev = Number(hydrationStats[idx].value || 0);
+    const subLiters = Number(editMl) / 1000;
+    const newValue = Math.max(prev - subLiters, 0).toFixed(2);
+    setHydrationStats(hydrationStats.map((stat, i) => i === idx ? { ...stat, value: newValue } : stat));
+    setEditingIndex(null);
   };
 
   return (
     <div className="min-h-screen bg-white px-4 py-6 relative">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-3 h-3 rounded-full bg-sky-300"></span>
-            <span className="inline-block w-3 h-3 rounded-full bg-sky-300"></span>
-            <span className="inline-block w-3 h-3 rounded-full bg-sky-300"></span>
-          </div>
-          <span className="text-sky-400 font-bold text-2xl ml-2">Swāsthya Sync</span>
-        </div>
-        <div className="flex items-center gap-2 text-gray-400">
-          <FaRegCalendarAlt />
-          <span className="text-base font-medium">{formatted}</span>
-        </div>
-        <div className="w-10 h-10 rounded-full bg-gray-200"></div>
-      </div>
-
       {/* Today Title */}
       <div className="text-3xl font-bold mb-4">today</div>
 
@@ -107,14 +128,35 @@ const Hydration = () => {
 
       {/* Hydration Stat Cards - align left */}
       <div className="flex flex-wrap gap-10 mb-4 justify-start">
-        {hydrationStats.map((stat) => (
-          <div key={stat.label + stat.value} className="flex flex-col w-72 h-80 rounded-2xl overflow-hidden shadow-lg">
+        {hydrationStats.map((stat, idx) => (
+          <div key={stat.label + (stat.value ?? '') + idx} className="flex flex-col w-72 h-80 rounded-2xl overflow-hidden shadow-lg cursor-pointer" onClick={() => handleCardClick(idx)}>
             <div className={`flex flex-col items-center justify-center py-10 ${stat.topBg}`}>
               {stat.icon}
               <div className="mt-4 text-2xl font-semibold text-black">{stat.label}</div>
             </div>
             <div className={`flex-1 flex flex-col items-center justify-center py-12 ${stat.bottomBg} ${stat.bottomText}`}>
-              <div className="text-3xl font-bold">{stat.value} <span className="text-xl font-normal">{stat.unit}</span></div>
+              {editingIndex === idx ? (
+                <form onClick={e => e.stopPropagation()} onSubmit={e => e.preventDefault()} className="flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      value={editMl}
+                      onChange={handleEditMlChange}
+                      className="border rounded px-2 py-1 w-24 text-black"
+                      placeholder="ml"
+                      autoFocus
+                    />
+                    <span className="text-lg font-medium">ml</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => handleAddAmount(idx)} className="bg-green-600 text-white rounded-lg px-4 py-1 font-semibold hover:bg-green-700 transition">Add</button>
+                    <button type="button" onClick={() => handleSubtractAmount(idx)} className="bg-red-600 text-white rounded-lg px-4 py-1 font-semibold hover:bg-red-700 transition">Subtract</button>
+                  </div>
+                </form>
+              ) : (
+                <div className="text-3xl font-bold">{stat.value ? `${stat.value} ` : '-- '}<span className="text-xl font-normal">liters</span></div>
+              )}
             </div>
           </div>
         ))}
@@ -124,41 +166,24 @@ const Hydration = () => {
       <button onClick={handleAddClick} className="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-black flex items-center justify-center shadow-lg hover:bg-gray-800 transition">
         <FaPlus className="text-white text-3xl" />
       </button>
-      {/* Modal Popup with light blur bg */}
+      {/* Modal Popup - now simple, no blur, grid of squares */}
       {showModal && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-white/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 w-96 shadow-lg relative">
+        <div className="fixed inset-0 bg-white/90 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 w-[36rem] shadow-lg relative">
             <button onClick={handleCloseModal} className="absolute top-2 right-4 text-2xl">&times;</button>
-            <h2 className="text-xl font-bold mb-4">Add Hydration</h2>
-            <div className="flex gap-4 mb-4">
-              {extraOptions.map((opt) => (
+            <h2 className="text-xl font-bold mb-6">Add Hydration Category</h2>
+            <div className="grid grid-cols-3 gap-6">
+              {hydrationCategories.map((cat) => (
                 <button
-                  key={opt.label}
-                  className={`flex flex-col items-center p-3 rounded-xl border-2 transition-all ${selectedOption?.label === opt.label ? 'border-black' : 'border-gray-200'}`}
-                  onClick={() => handleOptionSelect(opt)}
+                  key={cat.label}
+                  className={`flex flex-col items-center justify-center w-32 h-32 rounded-xl border-2 border-gray-200 transition-all shadow hover:shadow-lg ${cat.topBg}`}
+                  onClick={() => handleAddCategory(cat)}
                 >
-                  {opt.icon}
-                  <span className="mt-2 text-base font-medium">{opt.label}</span>
+                  {cat.icon}
+                  <span className="mt-4 text-base font-semibold text-center text-black">{cat.label}</span>
                 </button>
               ))}
             </div>
-            {selectedOption && (
-              <form onSubmit={handleAddHydration} className="flex flex-col gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-medium">Amount:</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={inputValue}
-                    onChange={handleInputChange}
-                    className="border rounded px-2 py-1 w-24"
-                    placeholder={`e.g. 1`}
-                  />
-                  <span className="text-lg font-medium">{selectedOption.unit}</span>
-                </div>
-                <button type="submit" className="bg-black text-white rounded-lg px-4 py-2 font-semibold hover:bg-gray-800 transition">Add</button>
-              </form>
-            )}
           </div>
         </div>
       )}

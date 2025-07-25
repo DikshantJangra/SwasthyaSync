@@ -4,7 +4,7 @@ import Sidebar from './Sidebar';
 
 const AppLayout = () => {
     return (
-    <div className="flex h-screen">
+        <div className="flex flex-col md:flex-row h-screen">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Outlet />
