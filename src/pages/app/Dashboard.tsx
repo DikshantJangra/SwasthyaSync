@@ -117,7 +117,7 @@ const Dashboard = () => {
             setInputHeight('');
             setEditing(null);
             // Refetch latest height after adding
-            const { data: newHeight, error: fetchError } = await supabase
+            const { data: newHeight } = await supabase
               .from('health_records')
               .select('value')
               .eq('user_id', userId)
@@ -142,7 +142,7 @@ const Dashboard = () => {
             setInputWeight('');
             setEditing(null);
             // Refetch latest weight after adding
-            const { data: newWeight, error: fetchError } = await supabase
+            const { data: newWeight } = await supabase
               .from('health_records')
               .select('value')
               .eq('user_id', userId)
@@ -167,7 +167,7 @@ const Dashboard = () => {
             setInputBlood('');
             setEditing(null);
             // Refetch latest blood group after adding
-            const { data: newBlood, error: fetchError } = await supabase
+            const { data: newBlood } = await supabase
               .from('health_records')
               .select('value')
               .eq('user_id', userId)
@@ -334,16 +334,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
-function getBmiStatus(bmi: number) {
-  if (bmi < 18.5) return 'Underweight';
-  if (bmi < 25) return 'Healthy';
-  if (bmi < 30) return 'Overweight';
-  return 'Obese';
-}
-function getBmiClass(bmi: number) {
-  if (bmi < 18.5) return 'bg-blue-100 text-blue-700';
-  if (bmi < 25) return 'bg-green-100 text-green-700';
-  if (bmi < 30) return 'bg-yellow-100 text-yellow-700';
-  return 'bg-red-100 text-red-700';
-}

@@ -36,12 +36,6 @@ const hydrationCategories: { label: string; icon: React.ReactElement; topBg: str
   { label: 'Traditional Drinks', icon: <FaGlassWhiskey className="text-3xl text-blue-400" />, topBg: 'bg-blue-100', bottomBg: 'bg-blue-400', bottomText: 'text-white' },
 ];
 
-const initialHydrationStats: HydrationOption[] = [
-  {
-    icon: <FaGlassWhiskey className="text-3xl text-sky-400" />, label: 'water', value: '2.5', unit: 'litters',
-    topBg: 'bg-sky-100', bottomBg: 'bg-sky-400', bottomText: 'text-white', est: '6ltrs',
-  },
-];
 
 const Hydration = () => {
   const [hydrationStats, setHydrationStats] = useState<HydrationOption[]>([]);
