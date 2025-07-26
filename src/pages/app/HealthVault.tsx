@@ -332,7 +332,7 @@ const HealthVault = () => {
   };
 
   return (
-    <div className="h-screen bg-gray-50 px-4 py-6">
+    <div className="h-screen px-4 py-6">
       {/* Header & Navigation - removed as per instructions */}
       {/* Title & Subtitle */}
       <div className="mb-2">
