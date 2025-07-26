@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { BiLogOutCircle } from 'react-icons/bi';
 
 const Navbar = () => {
   const [name, setName] = useState('loading');
@@ -71,12 +72,19 @@ const Navbar = () => {
         </div>
         {/* Dropdown */}
         {dropdownOpen && (
-          <div className="absolute right-0 top-17 mt-2 w-40 bg-white rounded-b-2xl shadow-lg border-b border-gray-100 z-50">
+          <div className="absolute right-0 top-15 mt-2 w-full bg-white rounded-b-2xl shadow-lg border border-gray-100 z-50">
+            <div
+              // to={'/'}
+              onClick={(e)=> e.stopPropagation()}
+              className='w-full text-left px-4 py-3 bg-gray-300  text-gray-700 hover:bg-gray-100 font-semibold cursor-pointer outline outline-gray-100 block'
+            >
+              Update Profile <span className='text-gray-400 outline-red-500 text-xs outline '>comming soon</span>
+            </div>
             <button
-              className="w-full text-left px-4 py-3 text-red-600 hover:bg-gray-100 rounded-b-2xl font-semibold cursor-pointer"
+              className="w-full text-left px-4 py-3 text-red-600 hover:bg-gray-100 rounded-b-2xl font-semibold cursor-pointer outline outline-gray-100"
               onClick={e => { e.stopPropagation(); handleLogout(); }}
             >
-              Logout
+              <BiLogOutCircle className='inline' /> Sign out
             </button>
           </div>
         )}
