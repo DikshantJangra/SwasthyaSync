@@ -43,7 +43,7 @@ const SignUp = () => {
             }
           },
         });
-        console.log(authError)
+        console.log(authError?.message)
     
         if (authError) {
           setError(authError.message);
@@ -53,7 +53,7 @@ const SignUp = () => {
         }
         const user = authData?.user
         if (!user) {
-          setError('User creation failed');
+          // setError(authError.message);
           return;
         }
       
