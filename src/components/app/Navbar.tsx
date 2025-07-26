@@ -62,8 +62,8 @@ const Navbar = () => {
         className="relative flex items-center gap-4 bg-white rounded-xl shadow p-4 mt-4 md:mt-0 cursor-pointer select-none"
         onClick={() => setDropdownOpen((v) => !v)}
       >
-        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-          <svg className="text-2xl text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+        <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
+          <img src="/user.svg" className='w-full h-full object-cover ' alt="" />
         </div>
         <div>
           <div className="font-semibold">Hi, {name}!</div>
@@ -71,9 +71,9 @@ const Navbar = () => {
         </div>
         {/* Dropdown */}
         {dropdownOpen && (
-          <div className="absolute right-0 top-16 mt-2 w-40 bg-white rounded-xl shadow-lg border border-gray-100 z-50">
+          <div className="absolute right-0 top-17 mt-2 w-40 bg-white rounded-b-2xl shadow-lg border-b border-gray-100 z-50">
             <button
-              className="w-full text-left px-4 py-3 text-red-600 hover:bg-gray-100 rounded-xl font-semibold"
+              className="w-full text-left px-4 py-3 text-red-600 hover:bg-gray-100 rounded-b-2xl font-semibold cursor-pointer"
               onClick={e => { e.stopPropagation(); handleLogout(); }}
             >
               Logout

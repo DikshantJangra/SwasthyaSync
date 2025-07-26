@@ -26,11 +26,11 @@ const hydrationCategories: { label: string; icon: React.ReactElement; topBg: str
   { label: 'Electrolytes', icon: <FaLemon className="text-3xl text-yellow-400" />, topBg: 'bg-yellow-100', bottomBg: 'bg-yellow-400', bottomText: 'text-white' },
   { label: 'Flavored Water', icon: <FaGlassWhiskey className="text-3xl text-pink-400" />, topBg: 'bg-pink-100', bottomBg: 'bg-pink-400', bottomText: 'text-white' },
   { label: 'Tea', icon: <FaLeaf className="text-3xl text-green-400" />, topBg: 'bg-green-100', bottomBg: 'bg-green-400', bottomText: 'text-white' },
-  { label: 'Coffee', icon: <FaCoffee className="text-3xl text-brown-400" />, topBg: 'bg-yellow-100', bottomBg: 'bg-yellow-400', bottomText: 'text-white' },
-  { label: 'Juice', icon: <FaAppleAlt className="text-3xl text-pink-400" />, topBg: 'bg-pink-100', bottomBg: 'bg-pink-400', bottomText: 'text-white' },
-  { label: 'Milk Drinks', icon: <FaGlassMartiniAlt className="text-3xl text-yellow-400" />, topBg: 'bg-yellow-100', bottomBg: 'bg-yellow-400', bottomText: 'text-white' },
+  { label: 'Coffee', icon: <FaCoffee className="text-3xl text-[#6F4E37]" />, topBg: 'bg-[#6F4E37]/40', bottomBg: 'bg-yellow-400', bottomText: 'text-white' },
+  { label: 'Juice', icon: <FaAppleAlt className="text-3xl text-red-400" />, topBg: 'bg-red-100', bottomBg: 'bg-red-400', bottomText: 'text-white' },
+  { label: 'Milk', icon: <FaGlassMartiniAlt className="text-3xl text-yellow-400" />, topBg: 'bg-yellow-100', bottomBg: 'bg-yellow-400', bottomText: 'text-white' },
   { label: 'Smoothies', icon: <FaAppleAlt className="text-3xl text-purple-400" />, topBg: 'bg-purple-100', bottomBg: 'bg-purple-400', bottomText: 'text-white' },
-  { label: 'Functional Drinks', icon: <FaWineBottle className="text-3xl text-gray-400" />, topBg: 'bg-gray-100', bottomBg: 'bg-gray-400', bottomText: 'text-white' },
+  { label: 'Alcholic Drinks', icon: <FaWineBottle className="text-3xl text-gray-400" />, topBg: 'bg-gray-100', bottomBg: 'bg-gray-400', bottomText: 'text-white' },
   { label: 'Herbal Drinks', icon: <FaLeaf className="text-3xl text-green-400" />, topBg: 'bg-green-100', bottomBg: 'bg-green-400', bottomText: 'text-white' },
   { label: 'Broths', icon: <FaGlassWhiskey className="text-3xl text-orange-400" />, topBg: 'bg-orange-100', bottomBg: 'bg-orange-400', bottomText: 'text-white' },
   { label: 'Traditional Drinks', icon: <FaGlassWhiskey className="text-3xl text-blue-400" />, topBg: 'bg-blue-100', bottomBg: 'bg-blue-400', bottomText: 'text-white' },
@@ -46,7 +46,7 @@ const Hydration = () => {
   const [activePeriod, setActivePeriod] = useState<'daily'|'weekly'|'monthly'|'quarterly'|'yearly'>('daily');
   const [addedCategories, setAddedCategories] = useState<string[]>([]);
 
-  // Helper to get date range for period
+  // filtering hydration period
   const getDateRange = (period: string) => {
     const today = new Date();
     let start: Date, end: Date;
