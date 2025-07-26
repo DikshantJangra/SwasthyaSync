@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { BiLogOutCircle } from 'react-icons/bi';
-import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   const [name, setName] = useState('loading');
