@@ -76,9 +76,9 @@ const Navbar = () => {
             <div
               // to={'/'}
               onClick={(e)=> e.stopPropagation()}
-              className='w-full text-left px-4 py-3 bg-gray-300  text-gray-700 hover:bg-gray-100 font-semibold cursor-pointer outline outline-gray-100 block'
+              className='w-full text-left px-4 py-3 bg-gray-200  text-gray-700 hover:bg-gray-100 font-semibold cursor-pointer outline outline-gray-100 block'
             >
-              Update Profile <span className='text-gray-400 outline-red-500 text-xs outline '>comming soon</span>
+              Update Profile <span className='text-red-400 outline-red-500 text-xs outline '>comming soon</span>
             </div>
             <button
               className="w-full text-left px-4 py-3 text-red-600 hover:bg-gray-100 rounded-b-2xl font-semibold cursor-pointer outline outline-gray-100"
