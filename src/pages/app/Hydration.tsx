@@ -211,7 +211,7 @@ const Hydration = () => {
         ))}
       </div>
 
-      {/* Hydration Stat Cards - align left */}
+      {/* Hydration Stat Cards */}
       <div className="flex flex-wrap gap-10 mb-4 justify-start">
         {hydrationStats
           .map((stat, idx) => ({ stat, idx }))
@@ -250,11 +250,11 @@ const Hydration = () => {
         ))}
       </div>
 
-      {/* Floating Action Button */}
+      
       <button onClick={handleAddClick} className="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-black flex items-center justify-center shadow-lg hover:bg-gray-800 transition">
         <FaPlus className="text-white text-3xl" />
       </button>
-      {/* Modal Popup - now simple, no blur, grid of squares */}
+      
       {showModal && (
         <div className="fixed inset-0 bg-white/90 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-8 w-[36rem] shadow-lg relative">

@@ -110,7 +110,7 @@ const SignUp = () => {
   return (
     <>
         <div className='min-h-dvh w-full font-Poppins bg-[#FF4A20] grid md:grid-cols-2 grid-cols-1 grid-rows-3 sm:grid-rows-1'>
-            <div className='md:bg-gradient-to-r from-[#ff0000] to-[rgba(0,0,0,0)] md:pt-30 pt-10 md:pl-10'>
+            <div className='md:bg-gradient-to-r from-[#ff0000] to-[rgba(0,0,0,0)] md:pt-30 pt-5 md:pl-10'>
                 <p className='text-white text-center text-3xl sm:text-5xl md:text-7xl leading-none tracking-tight font-bold'>YOUR HEALTH <br /> IS A PRIORITY!</p>
                 <img className='hidden md:block mt-30 mb-0 ml-auto mr-auto h-110' src="/wellH2o.png" alt="H2O" />
             </div>
@@ -126,6 +126,7 @@ const SignUp = () => {
                             <span className='opacity-50 text-lg'><BiRename /></span>
                             <input
                                 value={name}
+                                required
                                 onChange={(e) => setName(e.target.value)}
                                 className='focus:outline-none' type="text" placeholder='Name'
                             />
@@ -134,6 +135,7 @@ const SignUp = () => {
                             <span className='opacity-50 text-lg'><AiOutlineUserSwitch /></span>
                             <input
                                 value={username}
+                                required
                                 onChange={(e) => setUsername(e.target.value)}
                                 className='focus:outline-none' type="text" placeholder='Username' 
                             />
@@ -160,6 +162,7 @@ const SignUp = () => {
                                 name="password"
                                 type="password"
                                 placeholder="Password"
+                                required
                                 onChange={(e) => setPassword(e.target.value)} 
                                 className='focus:outline-none w-full bg-transparent'
                             />
@@ -170,6 +173,7 @@ const SignUp = () => {
                             <span className='opacity-50 text-lg'><AiOutlineLock /></span>
                             <input
                                 value={confirmPassword}
+                                required
                                 onChange={(e)=>setConfirmPassword(e.target.value)}
                                 className='focus:outline-none' type="password" placeholder='Confirm Password' 
                             />

@@ -121,7 +121,7 @@ const Dashboard = () => {
         } else {
             setInputHeight('');
             setEditing(null);
-            // Refetch latest height after adding
+            
             const { data: newHeight } = await supabase
               .from('health_records')
               .select('value')
@@ -145,7 +145,7 @@ const Dashboard = () => {
         } else {
             setInputWeight('');
             setEditing(null);
-            // Refetch latest weight after adding
+            
             const { data: newWeight } = await supabase
               .from('health_records')
               .select('value')

@@ -57,7 +57,7 @@ const HealthVault = () => {
   const [viewRecord, setViewRecord] = useState<RecordType | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // Fetch records from Supabase on mount
+  
   useEffect(() => {
     const fetchRecords = async () => {
       const {
@@ -83,7 +83,7 @@ const HealthVault = () => {
         console.error('Error fetching health vault records:', error.message);
         return;
       }
-      // Map DB records to UI records
+      
       const mapped = data.map((rec: any) => {
         // Assign icon and color based on category
         let icon: React.ReactElement = <FaFilePrescription className="text-gray-500 text-2xl" />;
@@ -139,7 +139,7 @@ const HealthVault = () => {
             color = 'bg-gray-100';
             break;
         }
-        // Format date as e.g. 'Oct 15, 2023'
+        
         const dateObj = new Date(rec.date);
         const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
         return {
@@ -159,11 +159,11 @@ const HealthVault = () => {
     fetchRecords();
   }, []);
 
-  // Filter records by category
+  
   let filteredRecords = records.filter(rec =>
     category === 'All Categories' || rec.type === category
   );
-  // Search filter
+  
   if (search.trim()) {
     const s = search.trim().toLowerCase();
     filteredRecords = filteredRecords.filter(rec =>
@@ -172,7 +172,7 @@ const HealthVault = () => {
       rec.tags.some(tag => tag.toLowerCase().includes(s))
     );
   }
-  // Sort
+  
   if (sort === 'Date (Newest)') {
     filteredRecords = filteredRecords.slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   } else if (sort === 'Date (Oldest)') {
@@ -183,27 +183,27 @@ const HealthVault = () => {
     filteredRecords = filteredRecords.slice().sort((a, b) => b.title.localeCompare(a.title));
   }
 
-  // Tag suggestion filter
+  
   const filteredTagSuggestions = tagSuggestions.filter(
     t => t.toLowerCase().includes(form.tagInput.toLowerCase()) && !form.tags.includes(t)
   );
 
-  // Add tag
+  
   const addTag = (tag: string) => {
     setForm(f => ({ ...f, tags: [...f.tags, tag], tagInput: '' }));
     setTimeout(() => tagInputRef.current && tagInputRef.current.focus(), 0);
   };
-  // Remove tag
+  
   const removeTag = (tag: string) => setForm(f => ({ ...f, tags: f.tags.filter(t => t !== tag) }));
 
-  // Handle form field changes
+  
   const handleFormChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm(f => ({ ...f, [name]: value }));
     setFormError('');
   };
 
-  // Save record
+  
   const handleSaveRecord = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!form.category) {
@@ -245,7 +245,7 @@ const HealthVault = () => {
       tagInput: '',
       notes: '',
     });
-    // Refetch records
+    
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -333,7 +333,6 @@ const HealthVault = () => {
 
   return (
     <div className="h-screen px-4 py-6">
-      {/* Header & Navigation - removed as per instructions */}
       {/* Title & Subtitle */}
       <div className="mb-2">
         <h1 className="text-3xl font-bold text-gray-900">Health Vault</h1>
@@ -341,7 +340,6 @@ const HealthVault = () => {
       </div>
       <div className="h-1 w-24 bg-gradient-to-r from-orange-400 to-orange-200 rounded-full mb-6"></div>
 
-      {/* Controls Row */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div className="flex gap-3 items-center">
           {/* Filter Dropdown */}
@@ -411,7 +409,7 @@ const HealthVault = () => {
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
           <div className="bg-white rounded-2xl shadow-lg w-full max-w-lg max-h-[90vh] flex flex-col" role="dialog" aria-modal="true" aria-labelledby="add-record-title">
-            {/* Fixed header and close */}
+            
             <div className="sticky top-0 z-10 bg-white rounded-t-2xl flex items-center justify-between px-8 pt-8 pb-4 border-b border-gray-100">
               <h2 id="add-record-title" className="text-2xl font-bold">Add a Record</h2>
               <button
