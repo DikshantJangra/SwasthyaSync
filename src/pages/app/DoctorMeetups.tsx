@@ -16,7 +16,7 @@ const DoctorMeetups = () => {
   const [formError, setFormError] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
 
-  // Fetch meetups from Supabase on mount
+
   useEffect(() => {
     const fetchMeetups = async () => {
       const {
@@ -42,7 +42,7 @@ const DoctorMeetups = () => {
         console.error('Error fetching doctor meetups:', error.message);
         return;
       }
-      // Map DB meetups to UI meetups
+      
       const mapped = data.map((m: any) => ({
         doctor: m.doctor,
         date: m.date,
@@ -54,7 +54,7 @@ const DoctorMeetups = () => {
     fetchMeetups();
   }, []);
 
-  // Split meetups by type and date
+  
   const today = new Date().toISOString().slice(0, 10);
   const upcomingMeetups = meetups.filter(m => m.type === 'Upcoming' && m.date >= today);
   const pastMeetups = meetups.filter(m => m.type === 'Past' || m.date < today);
@@ -74,11 +74,11 @@ const DoctorMeetups = () => {
       setFormError('User not authenticated.');
       return;
     }
-    // Determine type based on date
+    
     let type = form.type;
     if (form.date < today) type = 'Past';
     else type = 'Upcoming';
-    // Insert into Supabase
+    
     const { error } = await supabase.from('doctor_meetups').insert([
       {
         user_id: userId,
@@ -95,7 +95,7 @@ const DoctorMeetups = () => {
     setFormError('');
     setShowAddModal(false);
     setForm({ doctor: '', date: '', type: 'Upcoming', notes: '' });
-    // Refetch meetups
+    
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -120,7 +120,7 @@ const DoctorMeetups = () => {
 
   return (
     <div className="h-screen px-4 py-6">
-      {/* Creative Add Meetup */}
+
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-black">Plan or Log a Doctor Meetup</h1>
         <button
