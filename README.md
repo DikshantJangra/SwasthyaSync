@@ -2,7 +2,7 @@
 
 > Your Health, In Sync.
 
-Swāsthya Sync is an upcoming **health tracking & document storage platform** that empowers individuals to **track**, **store**, and **share** their health data with privacy and purpose.
+Swāsthya Sync is a **health tracking & document storage platform** that empowers individuals to **track**, **store**, and **share** their health data with privacy and purpose.
 
 ---
 
@@ -20,81 +20,44 @@ Our motto:
 
 ---
 
-## 🎯 Goals
-
-1. ✅ Make people **aware** of the importance of tracking their health.
-2. 🛠️ Build a platform where they can **actually start** doing it — easily, safely, and effectively.
-3. 🔐 Ensure **complete user data privacy** and access control.
-
----
-
 ## 🌐 Tech Stack
 
 | Area        | Tech Used               |
 |-------------|--------------------------|
-| Frontend    | React + TypeScript + Vite |
-| Styling     | Tailwind CSS             |
-| Backend     | Supabase (Auth, DB, API) |
-| Deployment  | Vercel / Netlify (TBD)   |
+| Frontend    | Next.js (App Router)     |
+| Styling     | Tailwind CSS 4           |
+| Deployment  | Vercel                   |
 
 ---
 
-## 📱 Features (MVP)
+## 📱 Features
 
-- [x] Landing Page (SPA, 5–6 sections)
-- [ ] Supabase Auth (Sign In/Up)
-- [ ] Health Info Collection (Start Flow)
-- [ ] Document Upload & Viewer
-- [ ] Health Tracker (Vitals, Medicine)
-- [ ] Temporary Access Link for Doctors
-- [ ] Dashboard UI for user summary
-
----
-
-## 🧑‍🤝‍🧑 Who's This For?
-
-- 📊 Health-conscious individuals
-- 👵 Elders and caregivers managing records
-- 👩‍⚕️ Patients visiting multiple doctors
-- 🏃‍♂️ Fitness and lifestyle optimizers
+- [x] Landing Page
+- [x] Dashboard UI
+- [x] Health Vault (Document Management)
+- [x] Hydration Tracker
+- [x] Doctor Meetups Log
+- [ ] Authentication (Migration in progress)
+- [ ] Database Integration
 
 ---
 
-## 🤝 Contribution Guide
+## 🔧 Setup
 
-We ❤️ contributions. Here's how you can help:
+1. **Clone the repo**
+   ```bash
+   git clone https://github.com/your-username/swasthyasync.git
+   ```
 
-### 🔧 Setup
-1. Clone the repo  
-   `git clone https://github.com/your-username/swarthya-sync.git`
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-2. Install dependencies  
-   `npm install`
-
-3. Start dev server  
-   `npm run dev`
-
----
-
-### 🌱 Ways to Contribute
-
-- 🎨 Help polish the landing page UI
-- 🔐 Improve Supabase Auth + Privacy Flows
-- 📂 Work on the Health Docs Upload System
-- 🧪 Add new health tracking widgets
-- 🧠 Suggest content for awareness/blog
-- 🪲 Report issues or request features
-
----
-
-### 📢 Got Feedback?
-
-We're building this for real people — if you have any thoughts, share via:
-
-- Issues
-- Discussions tab
-- [email@example.com](mailto:email@example.com)
-- [@yourtwitterhandle](https://twitter.com/yourtwitterhandle)
+3. **Start dev server**
+   ```bash
+   npm run dev
+   ```
 
 ---
 
