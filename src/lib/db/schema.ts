@@ -60,3 +60,6 @@ export const healthMetrics = pgTable("health_metrics", {
 	unit: text("unit"),
 	timestamp: timestamp("timestamp").notNull().defaultNow(),
 });
+
+// Fitness Module Exports
+export * from "@/modules/fitness/infrastructure/schema";

@@ -1,8 +1,10 @@
 import { publicProcedure, router } from '../trpc';
 import { healthRouter } from './health';
+import { fitnessRouter } from './fitness';
 
 export const appRouter = router({
   health: healthRouter,
+  fitness: fitnessRouter,
   healthCheck: publicProcedure.query(() => {
     return {
       status: 'ok',
