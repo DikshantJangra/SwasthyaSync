@@ -61,5 +61,32 @@ export const healthMetrics = pgTable("health_metrics", {
 	timestamp: timestamp("timestamp").notNull().defaultNow(),
 });
 
+export const medicalAppointments = pgTable("medical_appointments", {
+	id: text("id").primaryKey(),
+	userId: text("userId")
+		.notNull()
+		.references(() => user.id),
+	doctorName: text("doctorName").notNull(),
+	specialty: text("specialty"),
+	appointmentDate: timestamp("appointmentDate").notNull(),
+	location: text("location"),
+	notes: text("notes"),
+	status: text("status").default("scheduled"), // scheduled, completed, cancelled
+	createdAt: timestamp("createdAt").notNull().defaultNow(),
+});
+
+export const healthVaultRecords = pgTable("health_vault_records", {
+	id: text("id").primaryKey(),
+	userId: text("userId")
+		.notNull()
+		.references(() => user.id),
+	title: text("title").notNull(),
+	category: text("category").notNull(), // Report, Prescription, Lab Result
+	fileUrl: text("fileUrl"), // Placeholder for now
+	recordDate: timestamp("recordDate").notNull(),
+	tags: text("tags"), // JSON or Comma separated
+	createdAt: timestamp("createdAt").notNull().defaultNow(),
+});
+
 // Fitness Module Exports
 export * from "@/modules/fitness/infrastructure/schema";

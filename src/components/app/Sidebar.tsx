@@ -1,7 +1,7 @@
 'use client';
 
 import { IoBodySharp } from 'react-icons/io5';
-import { FaGlassWater } from 'react-icons/fa6';
+import { FaDumbbell } from 'react-icons/fa6';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { RiHealthBookLine } from 'react-icons/ri';
@@ -12,7 +12,7 @@ const Sidebar = () => {
 
   const buttons = [
     { icon: <IoBodySharp size={25} />, to: '/dashboard', label: 'Dashboard' },
-    { icon: <FaGlassWater size={25} />, to: '/hydration', label: 'Hydration' },
+    { icon: <FaDumbbell size={25} />, to: '/fitness', label: 'Fitness Engine' },
     { icon: <RiHealthBookLine size={25} />, to: '/health-vault', label: 'Health Vault' },
     { icon: <FaStethoscope size={25} />, to: '/doctor-meetup', label: 'Doctor Meet ups' },
   ];

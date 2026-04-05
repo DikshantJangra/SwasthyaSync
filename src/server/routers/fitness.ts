@@ -18,6 +18,13 @@ export const fitnessRouter = router({
     return fitnessEngine.getDashboard(ctx.session.user.id);
   }),
 
+  getExercises: protectedProcedure.query(async () => {
+    const { db } = await import("@/lib/db");
+    const { fitnessExercises } = await import("@/lib/db/schema");
+    return db.select().from(fitnessExercises);
+  }),
+
+  // --- Workouts ---
   logWorkout: protectedProcedure
     .input(z.object({
       workoutId: z.string().optional(),
@@ -42,6 +49,7 @@ export const fitnessRouter = router({
       });
     }),
 
+  // --- Nutrition ---
   logMeal: protectedProcedure
     .input(z.object({
       mealType: z.string(),
@@ -59,6 +67,56 @@ export const fitnessRouter = router({
       });
     }),
 
+  syncTdee: protectedProcedure.mutation(async ({ ctx }) => {
+    return fitnessEngine.syncTdee(ctx.session.user.id);
+  }),
+
+  // --- Holistic / Wellness ---
+  logSleep: protectedProcedure
+    .input(z.object({
+      date: z.date(),
+      bedTime: z.date().optional(),
+      wakeTime: z.date().optional(),
+      qualityScore: z.number().min(0).max(100).optional(),
+      latencyMinutes: z.number().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      return fitnessEngine.sleep.log({
+        ...input,
+        id: Math.random().toString(36).substr(2, 9),
+        userId: ctx.session.user.id,
+      });
+    }),
+
+  logWater: protectedProcedure
+    .input(z.object({
+      amountMl: z.number(),
+      containerId: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      return fitnessEngine.water.log({
+        ...input,
+        id: Math.random().toString(36).substr(2, 9),
+        userId: ctx.session.user.id,
+        date: new Date(),
+      });
+    }),
+
+  startFast: protectedProcedure
+    .input(z.object({
+      targetDurationHours: z.number(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      return fitnessEngine.fasting.log({
+        ...input,
+        id: Math.random().toString(36).substr(2, 9),
+        userId: ctx.session.user.id,
+        startTime: new Date(),
+        isCompleted: false,
+      });
+    }),
+
+  // --- Goals ---
   setGoal: protectedProcedure
     .input(z.object({
       type: z.enum(["nutrition", "workout", "weight", "custom"]),

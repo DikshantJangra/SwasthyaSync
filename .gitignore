@@ -57,3 +57,6 @@ next-env.d.ts
 *.sw?
 /src/generated/prisma
 temp_repos/
+.agents/
+.claude/
+skills-lock.json

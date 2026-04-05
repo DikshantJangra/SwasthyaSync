@@ -1,249 +1,228 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/utils/trpc";
 import { authClient } from "@/lib/auth/client";
 import { 
-  BsLightningChargeFill, 
-  BsFillPieChartFill, 
-  BsFlagFill, 
   BsPlusLg,
-  BsActivity,
-  BsFillCupHotFill
+  BsDashLg,
+  BsCheck2All,
+  BsTrash,
+  BsDropletFill
 } from "react-icons/bs";
+
+type Exercise = { id: string; name: string };
 
 export default function FitnessPage() {
   const { data: session } = authClient.useSession();
   const utils = trpc.useContext();
+  const { data: dashboard, isLoading } = trpc.fitness.getDashboard.useQuery(undefined, { enabled: !!session?.user });
+  const { data: exercises } = trpc.fitness.getExercises.useQuery() || { data: [] };
 
-  // Queries
-  const { data: dashboard, isLoading } = trpc.fitness.getDashboard.useQuery(undefined, {
-    enabled: !!session?.user,
-  });
+  const [activeTab, setActiveTab] = useState<'workout' | 'nutrition' | 'goals'>('workout');
 
-  // Mutations
+  // --- WORKOUT ---
+  const [isLive, setIsLive] = useState(false);
+  const [time, setTime] = useState(0);
+  const [activeLifts, setActiveLifts] = useState<{ exId: string; name: string; sets: { r: number; w: number; done: boolean }[] }[]>([]);
+  
   const logWorkout = trpc.fitness.logWorkout.useMutation({
-    onSuccess: () => utils.fitness.getDashboard.invalidate(),
+    onSuccess: () => { utils.fitness.getDashboard.invalidate(); cancelSession(); }
   });
-  const logMeal = trpc.fitness.logMeal.useMutation({
-    onSuccess: () => utils.fitness.getDashboard.invalidate(),
-  });
+
   const setGoal = trpc.fitness.setGoal.useMutation({
-    onSuccess: () => utils.fitness.getDashboard.invalidate(),
+    onSuccess: () => utils.fitness.getDashboard.invalidate()
   });
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'workout' | 'nutrition' | 'goals'>('dashboard');
+  useEffect(() => {
+    let i: any;
+    if (isLive) i = setInterval(() => setTime(t => t + 1), 1000);
+    return () => clearInterval(i);
+  }, [isLive]);
 
-  if (isLoading) return <div className="p-8 animate-pulse text-gray-400">Loading Fitness Engine...</div>;
+  const addLift = (ex: any) => setActiveLifts(l => [...l, { exId: ex.id, name: ex.name, sets: [{ r: 8, w: 20, done: false }] }]);
+  const updateSet = (lIdx: number, sIdx: number, f: 'r' | 'w' | 'done', d: number) => {
+    setActiveLifts(l => l.map((x, i) => i === lIdx ? { ...x, sets: x.sets.map((s, j) => j === sIdx ? { ...s, [f]: f === 'done' ? !s.done : Math.max(0, (s as any)[f] + d) } : s) } : x));
+  };
+  const cancelSession = () => { setIsLive(false); setTime(0); setActiveLifts([]); };
+  const finishWorkout = () => {
+    const sets = activeLifts.flatMap(l => l.sets.map((s, j) => ({ exerciseId: l.exId, setNumber: j + 1, reps: s.r, weight: s.w, setType: "working" as const })));
+    logWorkout.mutate({ durationMinutes: Math.max(1, Math.floor(time / 60)), sets });
+  };
+
+  // --- NUTRITION ---
+  const [activeMeal, setActiveMeal] = useState<'Breakfast' | 'Lunch' | 'Dinner' | 'Fluid' | null>(null);
+  const logMeal = trpc.fitness.logMeal.useMutation({ onSuccess: () => { utils.fitness.getDashboard.invalidate(); setActiveMeal(null); } });
+  const logWater = trpc.fitness.logWater.useMutation({ onSuccess: () => { utils.fitness.getDashboard.invalidate(); setActiveMeal(null); } });
+
+  if (isLoading) return <div className="p-10 font-bold">Loading...</div>;
 
   return (
-    <div className="min-h-screen p-4 md:p-8 bg-gray-50/50">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Fitness Engine</h1>
-          <p className="text-gray-500">Unified health & performance tracking</p>
-        </div>
-        <div className="flex bg-white p-1 rounded-xl shadow-sm border">
-          {(['dashboard', 'workout', 'nutrition', 'goals'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === tab 
-                ? "bg-[#FF4A20] text-white shadow-md" 
-                : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
+    <div className="min-h-screen bg-white text-black font-poppins pb-20">
+      
+      {/* Simple Header */}
+      <div className="px-6 py-10 max-w-6xl mx-auto flex justify-between items-center border-b">
+        <h1 className="text-4xl font-bold">Fitness</h1>
+        <div className="flex gap-8">
+          {['workout', 'nutrition', 'goals'].map((t: any) => (
+            <button key={t} onClick={() => setActiveTab(t)} className={`text-xs uppercase font-bold tracking-widest ${activeTab === t ? 'text-red-500 border-b-2 border-red-500 pb-1' : 'text-gray-400'}`}>{t}</button>
           ))}
         </div>
       </div>
 
-      {activeTab === 'dashboard' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Quick Stats */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 text-black">
-            <div className="p-3 bg-orange-100 text-[#FF4A20] rounded-xl">
-              <BsLightningChargeFill size={24} />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 font-medium font-poppins">Weekly Workouts</p>
-              <p className="text-2xl font-bold">{dashboard?.recentWorkouts.length || 0}</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 text-black">
-            <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
-              <BsFillPieChartFill size={24} />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 font-medium font-poppins">Today's Calories</p>
-              <p className="text-2xl font-bold">
-                {dashboard?.todayNutrition.reduce((acc, curr) => acc + curr.nutrients.calories, 0) || 0} kcal
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 text-black">
-            <div className="p-3 bg-green-100 text-green-600 rounded-xl">
-              <BsFlagFill size={24} />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 font-medium font-poppins">Active Goals</p>
-              <p className="text-2xl font-bold">{dashboard?.activeGoals.length || 0}</p>
-            </div>
-          </div>
-
-          {/* Recent Activity */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-black">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="font-bold flex items-center gap-2">
-                <BsActivity className="text-[#FF4A20]" /> Recent Activity
-              </h3>
-            </div>
-            <div className="p-6">
-              {dashboard?.recentWorkouts.length === 0 && (dashboard?.todayNutrition.length === 0) ? (
-                <p className="text-gray-400 text-center py-8 italic">No recent activity logged.</p>
-              ) : (
-                <div className="space-y-4">
-                  {dashboard?.recentWorkouts.map((w) => (
-                    <div key={w.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
-                      <div className="w-2 h-10 bg-[#FF4A20] rounded-full" />
-                      <div>
-                        <p className="font-semibold">Workout Session</p>
-                        <p className="text-sm text-gray-500">
-                          {w.durationMinutes} mins • {w.sets.length} sets • {new Date(w.date).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                  {dashboard?.todayNutrition.map((n) => (
-                    <div key={n.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
-                      <div className="w-2 h-10 bg-blue-500 rounded-full" />
-                      <div>
-                        <p className="font-semibold">{n.mealType} - {n.foodName || 'Food Item'}</p>
-                        <p className="text-sm text-gray-500">
-                          {n.nutrients.calories} kcal • {n.quantity}{n.unit}
-                        </p>
-                      </div>
-                    </div>
+      <div className="max-w-6xl mx-auto p-6">
+        {activeTab === 'workout' && (
+          <div className="space-y-10">
+            {!isLive ? (
+              <div className="py-10 text-center space-y-6">
+                <button onClick={() => setIsLive(true)} className="px-12 py-4 bg-black text-white rounded-full font-bold uppercase text-sm tracking-widest hover:bg-red-500 transition-colors">Start Workout</button>
+                <div className="space-y-4 pt-10 text-left">
+                  <h2 className="text-gray-400 uppercase text-[10px] font-bold tracking-widest">Recent Logs</h2>
+                  {dashboard?.recentWorkouts.map(w => (
+                     <div key={w.id} className="p-6 border rounded-2xl flex justify-between items-center hover:border-black">
+                        <div>
+                          <p className="font-bold">{new Date(w.date).toLocaleDateString()}</p>
+                          <p className="text-xs text-gray-500">{w.durationMinutes} min workout</p>
+                        </div>
+                        <p className="font-bold text-lg">{w.sets.length} sets</p>
+                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            ) : (
+              <div className="space-y-8 animate-in fade-in">
+                <div className="flex justify-between items-center bg-gray-50 p-6 rounded-2xl">
+                   <p className="text-4xl font-bold tabular-nums">{Math.floor(time/60)}:{(time%60).toString().padStart(2,'0')}</p>
+                   <div className="flex gap-4">
+                     <button onClick={cancelSession} className="text-xs font-bold text-red-500">Cancel</button>
+                     <button onClick={finishWorkout} className="px-8 py-3 bg-red-500 text-white rounded-full text-xs font-bold uppercase tracking-widest">Finish</button>
+                   </div>
+                </div>
 
-          {/* AI Insights */}
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-xl p-6 text-white overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-              <BsActivity size={80} />
-            </div>
-            <h3 className="font-bold mb-4 flex items-center gap-2 text-orange-400">
-              <BsLightningChargeFill /> AI Coach Insights
-            </h3>
-            <div className="space-y-4">
-              {dashboard?.insights && dashboard.insights.length > 0 ? (
-                dashboard.insights.map((insight) => (
-                  <div key={insight.id} className="p-3 bg-white/10 rounded-xl border border-white/5 backdrop-blur-sm">
-                    <p className="text-sm leading-relaxed">{insight.content}</p>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2 space-y-4">
+                    {activeLifts.map((l, lIdx) => (
+                      <div key={lIdx} className="border rounded-2xl overflow-hidden bg-white">
+                        <div className="bg-gray-50 p-4 font-bold flex justify-between border-b">
+                          <span>{l.name}</span>
+                          <button onClick={() => setActiveLifts(prev => prev.filter((_,i)=>i!==lIdx))} className="text-red-500 text-xs">Remove</button>
+                        </div>
+                        <div className="p-4 space-y-3">
+                          {l.sets.map((s, sIdx) => (
+                            <div key={sIdx} className="flex justify-between items-center">
+                              <span className="font-bold text-gray-400">#{sIdx+1}</span>
+                              <div className="flex items-center gap-2">
+                                <button onClick={()=>updateSet(lIdx, sIdx, 'w', -2.5)} className="w-8 h-8 rounded border flex items-center justify-center text-xs">-</button>
+                                <span className="w-10 text-center font-bold">{s.w}kg</span>
+                                <button onClick={()=>updateSet(lIdx, sIdx, 'w', 2.5)} className="w-8 h-8 rounded border flex items-center justify-center text-xs">+</button>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button onClick={()=>updateSet(lIdx, sIdx, 'r', -1)} className="w-8 h-8 rounded border flex items-center justify-center text-xs">-</button>
+                                <span className="w-6 text-center font-bold">{s.r}</span>
+                                <button onClick={()=>updateSet(lIdx, sIdx, 'r', 1)} className="w-8 h-8 rounded border flex items-center justify-center text-xs">+</button>
+                              </div>
+                              <button onClick={() => updateSet(lIdx, sIdx, 'done', 1 as any)} className={`w-8 h-8 rounded border flex items-center justify-center ${s.done ? 'bg-green-500' : ''}`}><BsCheck2All /></button>
+                            </div>
+                          ))}
+                          <button onClick={() => setActiveLifts(l => l.map((x,i) => i === lIdx ? { ...x, sets: [...x.sets, {r:8, w:20, done:false}] } : x))} className="w-full py-2 border-dashed border-2 rounded text-xs font-bold text-gray-400">+ Add Set</button>
+                        </div>
+                      </div>
+                    ))}
+                    {activeLifts.length === 0 && <p className="text-center py-20 bg-gray-50 rounded-2xl font-bold text-gray-300 border-2 border-dashed">Select a lift below</p>}
                   </div>
-                ))
-              ) : (
-                <div className="p-3 bg-white/10 rounded-xl border border-white/5">
-                  <p className="text-sm">Log your data to unlock AI coaching!</p>
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-2">Select Exercise</p>
+                    {exercises?.map((ex: any) => (
+                      <button key={ex.id} onClick={() => addLift(ex)} className="w-full text-left p-4 border rounded-xl font-bold hover:bg-gray-50 flex justify-between items-center group">
+                        {ex.name} <BsPlusLg className="group-hover:text-red-500" />
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Forms Updated for New Schemas */}
-      {activeTab === 'workout' && (
-        <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-black">
-          <h2 className="text-2xl font-bold mb-6">Log a Detailed Workout</h2>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            const formData = new FormData(e.currentTarget);
-            logWorkout.mutate({
-              durationMinutes: Number(formData.get('duration')),
-              sets: [{
-                exerciseId: "bench-press", // Example
-                setNumber: 1,
-                setType: "working",
-                reps: Number(formData.get('reps')),
-                weight: Number(formData.get('weight')),
-              }],
-            });
-            setActiveTab('dashboard');
-          }} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-               <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
-                <input name="duration" type="number" required className="w-full p-3 rounded-xl border border-gray-200" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Reps</label>
-                <input name="reps" type="number" className="w-full p-3 rounded-xl border border-gray-200" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
-                <input name="weight" type="number" className="w-full p-3 rounded-xl border border-gray-200" />
-              </div>
-            </div>
-            <button type="submit" disabled={logWorkout.isPending} className="w-full bg-[#FF4A20] text-white py-3 rounded-xl font-bold shadow-lg shadow-orange-200">
-              Log Detailed Workout
-            </button>
-          </form>
-        </div>
-      )}
+        {activeTab === 'nutrition' && (
+          <div className="space-y-10 animate-in fade-in">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+               {['Breakfast', 'Lunch', 'Dinner', 'Fluid'].map(m => (
+                 <button key={m} onClick={() => setActiveMeal(m as any)} className="p-8 border rounded-[32px] text-left hover:border-black transition-all group">
+                    <p className="text-2xl font-bold">{m}</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 group-hover:text-red-500">Log Now</p>
+                 </button>
+               ))}
+             </div>
 
-      {activeTab === 'nutrition' && (
-        <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-black">
-          <h2 className="text-2xl font-bold mb-6">Log Broad Macro Entry</h2>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            const formData = new FormData(e.currentTarget);
-            logMeal.mutate({
-              mealType: formData.get('mealType') as string,
-              quantity: 1,
-              unit: "serving",
-              nutrients: {
-                calories: Number(formData.get('calories')),
-                protein: Number(formData.get('protein')),
-                carbs: Number(formData.get('carbs')),
-                fat: Number(formData.get('fat')),
-              }
-            });
-            setActiveTab('dashboard');
-          }} className="space-y-4">
-            <select name="mealType" className="w-full p-3 rounded-xl border border-gray-200 mb-4">
-              <option value="breakfast">Breakfast</option>
-              <option value="lunch">Lunch</option>
-              <option value="dinner">Dinner</option>
-            </select>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Calories</label>
-                <input name="calories" type="number" required className="w-full p-3 rounded-xl border border-gray-200" />
+             {activeMeal && (
+                <div className="bg-gray-50 p-10 rounded-[40px] animate-in slide-in-from-bottom-5">
+                   <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-3xl font-bold">Log {activeMeal}</h2>
+                      <button onClick={() => setActiveMeal(null)} className="text-xs font-bold uppercase tracking-widest text-gray-400">Close</button>
+                   </div>
+                   
+                   {activeMeal === 'Fluid' ? (
+                      <form onSubmit={(e) => {
+                          e.preventDefault();
+                          const amount = Number(new FormData(e.currentTarget).get('ml'));
+                          logWater.mutate({ amountMl: amount });
+                      }} className="flex gap-4">
+                         <input name="ml" type="number" placeholder="500ml" required className="flex-1 p-4 rounded-2xl border font-bold" />
+                         <button type="submit" className="px-8 bg-black text-white rounded-2xl font-bold uppercase tracking-widest text-xs">Save</button>
+                      </form>
+                   ) : (
+                      <form onSubmit={(e) => {
+                          e.preventDefault();
+                          const d = new FormData(e.currentTarget);
+                          logMeal.mutate({
+                              mealType: activeMeal.toLowerCase(),
+                              foodName: d.get('food') as string,
+                              quantity: 1, unit: 'serving',
+                              nutrients: { calories: Number(d.get('cal')), protein: Number(d.get('p')), carbs: Number(d.get('c')), fat: Number(d.get('f')) }
+                          });
+                      }} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <input name="food" placeholder="Food name" className="p-4 rounded-xl border font-bold md:col-span-2" />
+                         <input name="cal" type="number" placeholder="Calories" className="p-4 rounded-xl border font-bold" />
+                         <input name="p" type="number" placeholder="Protein (g)" className="p-4 rounded-xl border font-bold" />
+                         <input name="c" type="number" placeholder="Carbs (g)" className="p-4 rounded-xl border font-bold" />
+                         <input name="f" type="number" placeholder="Fat (g)" className="p-4 rounded-xl border font-bold" />
+                         <button type="submit" className="p-4 bg-black text-white rounded-xl font-bold uppercase md:col-span-2">Log Meal</button>
+                      </form>
+                   )}
+                </div>
+             )}
+
+             <div className="pt-10 space-y-4">
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Today's Intake</h3>
+                {dashboard?.todayNutrition.map(n => (
+                   <div key={n.id} className="p-4 border rounded-xl flex justify-between items-center">
+                      <span className="font-bold capitalize">{n.mealType}: {n.foodName || 'Food'}</span>
+                      <span className="font-bold text-red-500">{n.nutrients.calories} cal</span>
+                   </div>
+                ))}
+             </div>
+          </div>
+        )}
+
+        {activeTab === 'goals' && (
+           <div className="space-y-8 animate-in fade-in pt-10">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                 {[
+                   { t: 'Lose Weight', v: 70 },
+                   { t: 'Build Muscle', v: 85 },
+                   { t: 'Maintain', v: 75 }
+                 ].map(g => (
+                    <button key={g.t} onClick={() => setGoal.mutate({ type: 'weight', targetWeight: g.v })} className="p-10 border rounded-[40px] text-left hover:border-black group">
+                       <p className="text-2xl font-bold">{g.t}</p>
+                       <p className="text-xs font-bold text-gray-400 uppercase mt-2 group-hover:text-red-500">Pick Goal</p>
+                    </button>
+                 ))}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Protein (g)</label>
-                <input name="protein" type="number" required className="w-full p-3 rounded-xl border border-gray-200" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Carbs (g)</label>
-                <input name="carbs" type="number" required className="w-full p-3 rounded-xl border border-gray-200" />
-              </div>
-            </div>
-            <button type="submit" disabled={logMeal.isPending} className="w-full bg-[#FF4A20] text-white py-3 rounded-xl font-bold shadow-lg shadow-orange-200">
-              Log Meal Nutrients
-            </button>
-          </form>
-        </div>
-      )}
+           </div>
+        )}
+      </div>
+
     </div>
   );
 }

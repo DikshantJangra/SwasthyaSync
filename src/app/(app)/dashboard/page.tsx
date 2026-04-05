@@ -13,6 +13,10 @@ export default function Dashboard() {
     const { data: metrics, isLoading: metricsLoading, refetch } = trpc.health.getMetrics.useQuery(undefined, {
         enabled: !!session?.user,
     });
+    
+    const { data: fitnessDashboard, isLoading: fitnessLoading } = trpc.fitness.getDashboard.useQuery(undefined, {
+        enabled: !!session?.user,
+    });
 
     // tRPC Mutations
     const logMetricMutation = trpc.health.logMetric.useMutation({
@@ -65,7 +69,7 @@ export default function Dashboard() {
         }
     };
 
-    const isPending = sessionPending || metricsLoading;
+    const isPending = sessionPending || metricsLoading || fitnessLoading;
 
     return (
         <div className="min-h-screen p-4 md:p-8 font-poppins">
@@ -205,15 +209,26 @@ export default function Dashboard() {
                     </div>
                     <div className="bg-white rounded-2xl shadow p-6 flex flex-col gap-3">
                         <div className="flex items-center gap-2 mb-2">
-                            <span className="bg-yellow-100 text-yellow-600 rounded-full p-2">
-                                <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M12 2a7 7 0 017 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 01-2 0v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 017-7zm0 18a2 2 0 002-2h-4a2 2 0 002 2z" fill="#eab308" /></svg>
+                            <span className="bg-orange-100 text-[#FF4A20] rounded-full p-2">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M11.251.068a.5.5 0 0 1 .227.58L9.677 6.5H13a.5.5 0 0 1 .364.843l-8 8.5a.5.5 0 0 1-.842-.49L6.323 9.5H3a.5.5 0 0 1-.364-.843l8-8.5a.5.5 0 0 1 .615-.09z" /></svg>
                             </span>
-                            <span className="font-semibold text-gray-800">Tip of the Day</span>
+                            <span className="font-semibold text-gray-800">Fitness Engine</span>
                         </div>
-                        <div className="bg-gradient-to-br from-yellow-900 to-yellow-700 rounded-xl p-4 text-white">
-                            <div className="font-bold mb-1">Ayurvedic Wisdom</div>
-                            <div className="text-sm">Try a warm cup of haldi doodh (turmeric milk) before bed to improve sleep quality and reduce inflammation.</div>
+                        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-4 text-white space-y-3">
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="opacity-80">Weekly Workouts</span>
+                                <span className="font-bold text-lg">{fitnessDashboard?.recentWorkouts.length || 0}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm border-t border-white/10 pt-2">
+                                <span className="opacity-80">Today's Calories</span>
+                                <span className="font-bold text-[#FF4A20] text-lg">
+                                    {fitnessDashboard?.todayNutrition.reduce((acc, curr) => acc + curr.nutrients.calories, 0) || 0}
+                                </span>
+                            </div>
                         </div>
+                        <Link href="/fitness" className="mt-2 text-center text-sm font-bold text-[#FF4A20] hover:underline">
+                            Open Deep Analytics ➔
+                        </Link>
                     </div>
                 </div>
             </div>

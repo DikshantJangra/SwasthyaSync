@@ -6,9 +6,7 @@ export interface Goal {
   type: "nutrition" | "workout" | "weight" | "custom";
   goalDate?: Date; // Timeline-specific goal
   targetNutrients?: Nutrients;
-  targetWorkoutCount?: number;
-  targetWorkoutDuration?: number;
-  targetWeight?: number;
+  targetValues?: Record<string, any>; // Flexible storage for Sparky features
   status: "active" | "completed" | "archived";
 }
 
@@ -19,7 +17,7 @@ export interface ProgressMetric {
   type: "weight" | "body_fat" | "measurement" | "sleep" | "mood";
   value: number;
   unit: string;
-  metadata?: Record<string, any>; // For Sparky-style mapping like sleep mid-points etc.
+  metadata?: Record<string, any>;
 }
 
 export interface FamilyAccess {

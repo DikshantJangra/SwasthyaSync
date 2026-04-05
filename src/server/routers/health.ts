@@ -14,6 +14,17 @@ export const healthRouter = router({
     }
   }),
 
+  // Master Pulse Dashboard Query
+  getUnifiedPulse: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      logger.info({ userId: ctx.session.user.id }, 'Fetching unified health pulse via tRPC');
+      return await healthModule.getUnifiedPulseUseCase.execute(ctx.session.user.id);
+    } catch (error) {
+      console.error('❌ tRPC getUnifiedPulse failed:', error);
+      throw error;
+    }
+  }),
+
   logMetric: protectedProcedure
     .input(CreateMetricSchema)
     .mutation(async ({ input, ctx }) => {
