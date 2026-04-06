@@ -8,6 +8,13 @@
       "when": 1776008522501,
       "tag": "0000_easy_hex",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776100000000,
+      "tag": "0001_health_metrics_value_text",
+      "breakpoints": true
     }
   ]
 }
