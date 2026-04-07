@@ -53,9 +53,11 @@ export default function Dashboard() {
     const todayHydrationRaw = localMetrics?.find(m => m.type === 'hydration')?.value;
     const todayHydration =
         todayHydrationRaw != null && todayHydrationRaw !== '' ? Number(todayHydrationRaw) : null;
-    const heightRaw = localMetrics?.find(m => m.type === 'height')?.value;
+    const heightMetric = localMetrics?.find(m => m.type === 'height');
+    const heightRaw = heightMetric?.value;
     const height = heightRaw != null && heightRaw !== '' ? Number(heightRaw) : null;
-    const weightRaw = localMetrics?.find(m => m.type === 'weight')?.value;
+    const weightMetric = localMetrics?.find(m => m.type === 'weight');
+    const weightRaw = weightMetric?.value;
     const weight = weightRaw != null && weightRaw !== '' ? Number(weightRaw) : null;
     const bloodMetric = localMetrics?.find(m => m.type === 'blood_group');
     const blood = bloodMetric?.unit ?? bloodMetric?.value ?? null;
@@ -193,27 +195,32 @@ export default function Dashboard() {
                                 <>
                                     <div className="text-lg font-semibold text-gray-800">Height</div>
                                     <div className="text-2xl font-bold text-blue-600">{height !== null ? `${height} cm` : '-- cm'}</div>
-                                    <button className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 transition" onClick={() => setEditing('height_add')}>
-                                        Add Height
-                                    </button>
-                                    {/* Small UI-only controls below the Add button */}
-                                    <div className="flex gap-2">
-                                        <button
-                                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
-                                            onClick={() => {
-                                                setEditHeight(height !== null ? String(height) : '');
-                                                setEditing('height_edit');
-                                            }}
-                                        >
-                                            Edit
+                                    {/* State-based CRUD buttons:
+                                        - If metric exists: show Edit + Delete
+                                        - If metric does not exist: show Add */}
+                                    {heightMetric ? (
+                                        <div className="flex gap-2">
+                                            <button
+                                                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                                onClick={() => {
+                                                    setEditHeight(height !== null ? String(height) : '');
+                                                    setEditing('height_edit');
+                                                }}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                                onClick={() => handleDeleteMetric('height')}
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 transition" onClick={() => setEditing('height_add')}>
+                                            Add Height
                                         </button>
-                                        <button
-                                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
-                                            onClick={() => handleDeleteMetric('height')}
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
+                                    )}
                                 </>
                             )}
                         </div>
@@ -252,27 +259,29 @@ export default function Dashboard() {
                                 <>
                                     <div className="text-lg font-semibold text-gray-800">Weight</div>
                                     <div className="text-2xl font-bold text-green-600">{weight !== null ? `${weight} kg` : '-- kg'}</div>
-                                    <button className="mt-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium hover:bg-green-200 transition" onClick={() => setEditing('weight_add')}>
-                                        Add Weight
-                                    </button>
-                                    {/* Small UI-only controls below the Add button */}
-                                    <div className="flex gap-2">
-                                        <button
-                                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
-                                            onClick={() => {
-                                                setEditWeight(weight !== null ? String(weight) : '');
-                                                setEditing('weight_edit');
-                                            }}
-                                        >
-                                            Edit
+                                    {weightMetric ? (
+                                        <div className="flex gap-2">
+                                            <button
+                                                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                                onClick={() => {
+                                                    setEditWeight(weight !== null ? String(weight) : '');
+                                                    setEditing('weight_edit');
+                                                }}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                                onClick={() => handleDeleteMetric('weight')}
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button className="mt-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium hover:bg-green-200 transition" onClick={() => setEditing('weight_add')}>
+                                            Add Weight
                                         </button>
-                                        <button
-                                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
-                                            onClick={() => handleDeleteMetric('weight')}
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
+                                    )}
                                 </>
                             )}
                         </div>
@@ -329,27 +338,29 @@ export default function Dashboard() {
                                 <>
                                     <div className="text-lg font-semibold text-gray-800">Blood Group</div>
                                     <div className="text-2xl font-bold text-red-600">{blood !== null ? blood : '--'}</div>
-                                    <button className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium hover:bg-red-200 transition" onClick={() => setEditing('blood_add')}>
-                                        Add Blood Group
-                                    </button>
-                                    {/* Small UI-only controls below the Add button */}
-                                    <div className="flex gap-2">
-                                        <button
-                                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
-                                            onClick={() => {
-                                                setEditBlood(typeof blood === 'string' ? blood : '');
-                                                setEditing('blood_edit');
-                                            }}
-                                        >
-                                            Edit
+                                    {bloodMetric ? (
+                                        <div className="flex gap-2">
+                                            <button
+                                                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                                onClick={() => {
+                                                    setEditBlood(typeof blood === 'string' ? blood : '');
+                                                    setEditing('blood_edit');
+                                                }}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                                onClick={() => handleDeleteMetric('blood_group')}
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium hover:bg-red-200 transition" onClick={() => setEditing('blood_add')}>
+                                            Add Blood Group
                                         </button>
-                                        <button
-                                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
-                                            onClick={() => handleDeleteMetric('blood_group')}
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
+                                    )}
                                 </>
                             )}
                         </div>
