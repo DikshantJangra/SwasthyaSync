@@ -38,16 +38,26 @@ export default function Dashboard() {
     });
 
     const [upcomingMeetups, setUpcomingMeetups] = useState<{ doctor: string; date: string }[]>([]);
-    
-    // Local derived state from tRPC data
-    const todayHydrationRaw = metrics?.find(m => m.type === 'hydration')?.value;
+
+    // Frontend-only CRUD (edit/delete) state:
+    // We keep a local copy of `metrics` so we can update the UI immediately
+    // without changing backend/database logic.
+    const [localMetrics, setLocalMetrics] = useState<typeof metrics>(undefined);
+
+    // Whenever tRPC `metrics` changes (fresh fetch), sync it into local state.
+    useEffect(() => {
+        setLocalMetrics(metrics);
+    }, [metrics]);
+
+    // Local derived state from UI metrics (not directly from backend)
+    const todayHydrationRaw = localMetrics?.find(m => m.type === 'hydration')?.value;
     const todayHydration =
         todayHydrationRaw != null && todayHydrationRaw !== '' ? Number(todayHydrationRaw) : null;
-    const heightRaw = metrics?.find(m => m.type === 'height')?.value;
+    const heightRaw = localMetrics?.find(m => m.type === 'height')?.value;
     const height = heightRaw != null && heightRaw !== '' ? Number(heightRaw) : null;
-    const weightRaw = metrics?.find(m => m.type === 'weight')?.value;
+    const weightRaw = localMetrics?.find(m => m.type === 'weight')?.value;
     const weight = weightRaw != null && weightRaw !== '' ? Number(weightRaw) : null;
-    const bloodMetric = metrics?.find(m => m.type === 'blood_group');
+    const bloodMetric = localMetrics?.find(m => m.type === 'blood_group');
     const blood = bloodMetric?.unit ?? bloodMetric?.value ?? null;
 
     useEffect(() => {
@@ -57,10 +67,17 @@ export default function Dashboard() {
         ]);
     }, []);
 
+    // `editing` controls which card is in "edit/add" mode in the UI.
+    // We use different keys for backend-save ("*_add") vs frontend-only edit ("*_edit").
     const [editing, setEditing] = useState<string | null>(null);
     const [inputHeight, setInputHeight] = useState('');
     const [inputWeight, setInputWeight] = useState('');
     const [inputBlood, setInputBlood] = useState('');
+
+    // Extra inputs for frontend-only edit mode (updates UI state only).
+    const [editHeight, setEditHeight] = useState('');
+    const [editWeight, setEditWeight] = useState('');
+    const [editBlood, setEditBlood] = useState('');
 
     const handleSubmitHeight = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -79,6 +96,20 @@ export default function Dashboard() {
         if (inputBlood) {
             logMetricMutation.mutate({ type: 'blood_group', value: inputBlood });
         }
+    };
+
+    // DELETE logic (frontend-only):
+    // Remove a metric from the UI by filtering it out of the local array.
+    const handleDeleteMetric = (type: string) => {
+        setLocalMetrics((prev) => prev?.filter((m) => m.type !== type));
+    };
+
+    // EDIT logic (frontend-only):
+    // Update a metric value in the UI by mapping and replacing the matching type.
+    const handleEditMetric = (type: string, value: number | string) => {
+        setLocalMetrics((prev) =>
+            prev?.map((m) => (m.type === type ? { ...m, value } : m))
+        );
     };
 
     const isPending = sessionPending || metricsLoading || fitnessLoading || insightsLoading;
@@ -129,41 +160,126 @@ export default function Dashboard() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                         <div className={metricCardClass}>
                             <img src="/height.svg" alt="Height" className="h-14" />
-                            {editing === 'height' ? (
+                            {/* Height: "Add" saves to backend, "Edit/Delete" are UI-only */}
+                            {editing === 'height_add' ? (
                                 <form className="flex flex-col items-center w-full" onSubmit={handleSubmitHeight}>
                                     <input type="number" value={inputHeight} onChange={e => setInputHeight(e.target.value)} className="w-full text-center border rounded p-1 mb-2 text-black" placeholder="Enter height (cm)" />
                                     <button type="submit" className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 transition">Save</button>
+                                </form>
+                            ) : editing === 'height_edit' ? (
+                                <form
+                                    className="flex flex-col items-center w-full"
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        if (!editHeight) return;
+                                        // EDIT logic: update height value in local UI state (no backend call)
+                                        handleEditMetric('height', Number(editHeight));
+                                        setEditing(null);
+                                    }}
+                                >
+                                    <input
+                                        type="number"
+                                        value={editHeight}
+                                        onChange={(e) => setEditHeight(e.target.value)}
+                                        className="w-full text-center border rounded p-1 mb-2 text-black"
+                                        placeholder="Update height (cm)"
+                                    />
+                                    <div className="flex gap-2">
+                                        <button type="submit" className="px-3 py-1 bg-gray-900 text-white rounded-full text-sm font-medium hover:bg-gray-800 transition">Update</button>
+                                        <button type="button" className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition" onClick={() => setEditing(null)}>Cancel</button>
+                                    </div>
                                 </form>
                             ) : (
                                 <>
                                     <div className="text-lg font-semibold text-gray-800">Height</div>
                                     <div className="text-2xl font-bold text-blue-600">{height !== null ? `${height} cm` : '-- cm'}</div>
-                                    <button className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 transition" onClick={() => setEditing('height')}>
+                                    <button className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 transition" onClick={() => setEditing('height_add')}>
                                         Add Height
                                     </button>
+                                    {/* Small UI-only controls below the Add button */}
+                                    <div className="flex gap-2">
+                                        <button
+                                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                            onClick={() => {
+                                                setEditHeight(height !== null ? String(height) : '');
+                                                setEditing('height_edit');
+                                            }}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                            onClick={() => handleDeleteMetric('height')}
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
                                 </>
                             )}
                         </div>
                         <div className={metricCardClass}>
                             <img src="/weight.svg" alt="Weight" className="h-14" />
-                            {editing === 'weight' ? (
+                            {/* Weight: "Add" saves to backend, "Edit/Delete" are UI-only */}
+                            {editing === 'weight_add' ? (
                                 <form className="flex flex-col items-center w-full" onSubmit={handleSubmitWeight}>
                                     <input type="number" value={inputWeight} onChange={e => setInputWeight(e.target.value)} className="w-full text-center border rounded p-1 mb-2 text-black" placeholder="Enter weight (kg)" />
                                     <button type="submit" className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium hover:bg-green-200 transition">Save</button>
+                                </form>
+                            ) : editing === 'weight_edit' ? (
+                                <form
+                                    className="flex flex-col items-center w-full"
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        if (!editWeight) return;
+                                        // EDIT logic: update weight value in local UI state (no backend call)
+                                        handleEditMetric('weight', Number(editWeight));
+                                        setEditing(null);
+                                    }}
+                                >
+                                    <input
+                                        type="number"
+                                        value={editWeight}
+                                        onChange={(e) => setEditWeight(e.target.value)}
+                                        className="w-full text-center border rounded p-1 mb-2 text-black"
+                                        placeholder="Update weight (kg)"
+                                    />
+                                    <div className="flex gap-2">
+                                        <button type="submit" className="px-3 py-1 bg-gray-900 text-white rounded-full text-sm font-medium hover:bg-gray-800 transition">Update</button>
+                                        <button type="button" className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition" onClick={() => setEditing(null)}>Cancel</button>
+                                    </div>
                                 </form>
                             ) : (
                                 <>
                                     <div className="text-lg font-semibold text-gray-800">Weight</div>
                                     <div className="text-2xl font-bold text-green-600">{weight !== null ? `${weight} kg` : '-- kg'}</div>
-                                    <button className="mt-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium hover:bg-green-200 transition" onClick={() => setEditing('weight')}>
+                                    <button className="mt-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium hover:bg-green-200 transition" onClick={() => setEditing('weight_add')}>
                                         Add Weight
                                     </button>
+                                    {/* Small UI-only controls below the Add button */}
+                                    <div className="flex gap-2">
+                                        <button
+                                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                            onClick={() => {
+                                                setEditWeight(weight !== null ? String(weight) : '');
+                                                setEditing('weight_edit');
+                                            }}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                            onClick={() => handleDeleteMetric('weight')}
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
                                 </>
                             )}
                         </div>
                         <div className={metricCardClass}>
                             <img src="/blood.svg" alt="Blood Group" className="h-14" />
-                            {editing === 'blood' ? (
+                            {/* Blood group: "Add" saves to backend, "Edit/Delete" are UI-only */}
+                            {editing === 'blood_add' ? (
                                 <form className="flex flex-col items-center w-full" onSubmit={handleSubmitBlood}>
                                     <select value={inputBlood} onChange={e => setInputBlood(e.target.value)} className="w-full text-center border rounded p-1 mb-2 text-black">
                                         <option value="">Select blood group</option>
@@ -178,13 +294,62 @@ export default function Dashboard() {
                                     </select>
                                     <button type="submit" className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium hover:bg-red-200 transition">Save</button>
                                 </form>
+                            ) : editing === 'blood_edit' ? (
+                                <form
+                                    className="flex flex-col items-center w-full"
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        if (!editBlood) return;
+                                        // EDIT logic: update blood group in local UI state (no backend call)
+                                        handleEditMetric('blood_group', editBlood);
+                                        setEditing(null);
+                                    }}
+                                >
+                                    <select
+                                        value={editBlood}
+                                        onChange={(e) => setEditBlood(e.target.value)}
+                                        className="w-full text-center border rounded p-1 mb-2 text-black"
+                                    >
+                                        <option value="">Select blood group</option>
+                                        <option value="A+">A+</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B-">B-</option>
+                                        <option value="AB+">AB+</option>
+                                        <option value="AB-">AB-</option>
+                                        <option value="O+">O+</option>
+                                        <option value="O-">O-</option>
+                                    </select>
+                                    <div className="flex gap-2">
+                                        <button type="submit" className="px-3 py-1 bg-gray-900 text-white rounded-full text-sm font-medium hover:bg-gray-800 transition">Update</button>
+                                        <button type="button" className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition" onClick={() => setEditing(null)}>Cancel</button>
+                                    </div>
+                                </form>
                             ) : (
                                 <>
                                     <div className="text-lg font-semibold text-gray-800">Blood Group</div>
                                     <div className="text-2xl font-bold text-red-600">{blood !== null ? blood : '--'}</div>
-                                    <button className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium hover:bg-red-200 transition" onClick={() => setEditing('blood')}>
+                                    <button className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium hover:bg-red-200 transition" onClick={() => setEditing('blood_add')}>
                                         Add Blood Group
                                     </button>
+                                    {/* Small UI-only controls below the Add button */}
+                                    <div className="flex gap-2">
+                                        <button
+                                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                            onClick={() => {
+                                                setEditBlood(typeof blood === 'string' ? blood : '');
+                                                setEditing('blood_edit');
+                                            }}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                            onClick={() => handleDeleteMetric('blood_group')}
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
                                 </>
                             )}
                         </div>
