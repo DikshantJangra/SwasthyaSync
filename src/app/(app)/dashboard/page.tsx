@@ -117,8 +117,11 @@ export default function Dashboard() {
     const isPending = sessionPending || metricsLoading || fitnessLoading || insightsLoading;
 
     // Reusable UI styles to keep cards consistent and reduce duplication.
+    // UI improvement: slightly stronger hover scale with smooth transition.
     const metricCardClass =
-        "bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-between gap-3 min-h-[230px] transition-transform duration-150 hover:scale-[1.02] hover:shadow-md";
+        "bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-between gap-3 min-h-[230px] transition-all duration-200 hover:scale-105 hover:shadow-md";
+    const addButtonClass = "mt-2 px-3 py-1.5 rounded-full text-sm font-medium transition";
+    const miniActionButtonClass = "px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition";
 
     // Helper to convert BMI number into a readable category.
     // We keep this logic simple and fully client-side (no backend changes).
@@ -139,6 +142,26 @@ export default function Dashboard() {
     // For a fuller UI, we display 0L while still keeping the original "not logged" state.
     const hydrationDisplayValue = todayHydration ?? 0;
     const hydrationProgressPercent = Math.min((hydrationDisplayValue / 3) * 100, 100);
+
+    // History helpers:
+    // We use existing `metrics` query data and show only the latest 3 rows per type.
+    const getMetricHistory = (type: "height" | "weight" | "blood_group") =>
+        (metrics ?? [])
+            .filter((m) => m.type === type)
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+            .slice(0, 3);
+
+    const formatMetricDate = (isoDate: string) => {
+        const date = new Date(isoDate);
+        const today = new Date();
+        // If entry is from the same day, show "Today" for simpler UX.
+        if (date.toDateString() === today.toDateString()) return "Today";
+        return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+    };
+
+    const heightHistory = getMetricHistory("height");
+    const weightHistory = getMetricHistory("weight");
+    const bloodHistory = getMetricHistory("blood_group");
 
     return (
         <div className="min-h-screen p-4 md:p-8 font-poppins bg-gray-50">
@@ -201,7 +224,7 @@ export default function Dashboard() {
                                     {heightMetric ? (
                                         <div className="flex gap-2">
                                             <button
-                                                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                                className={miniActionButtonClass}
                                                 onClick={() => {
                                                     setEditHeight(height !== null ? String(height) : '');
                                                     setEditing('height_edit');
@@ -210,14 +233,14 @@ export default function Dashboard() {
                                                 Edit
                                             </button>
                                             <button
-                                                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                                className={miniActionButtonClass}
                                                 onClick={() => handleDeleteMetric('height')}
                                             >
                                                 Delete
                                             </button>
                                         </div>
                                     ) : (
-                                        <button className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 transition" onClick={() => setEditing('height_add')}>
+                                        <button className={`${addButtonClass} bg-blue-100 text-blue-700 hover:bg-blue-200`} onClick={() => setEditing('height_add')}>
                                             Add Height
                                         </button>
                                     )}
@@ -262,7 +285,7 @@ export default function Dashboard() {
                                     {weightMetric ? (
                                         <div className="flex gap-2">
                                             <button
-                                                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                                className={miniActionButtonClass}
                                                 onClick={() => {
                                                     setEditWeight(weight !== null ? String(weight) : '');
                                                     setEditing('weight_edit');
@@ -271,14 +294,14 @@ export default function Dashboard() {
                                                 Edit
                                             </button>
                                             <button
-                                                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                                className={miniActionButtonClass}
                                                 onClick={() => handleDeleteMetric('weight')}
                                             >
                                                 Delete
                                             </button>
                                         </div>
                                     ) : (
-                                        <button className="mt-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium hover:bg-green-200 transition" onClick={() => setEditing('weight_add')}>
+                                        <button className={`${addButtonClass} bg-green-100 text-green-700 hover:bg-green-200`} onClick={() => setEditing('weight_add')}>
                                             Add Weight
                                         </button>
                                     )}
@@ -341,7 +364,7 @@ export default function Dashboard() {
                                     {bloodMetric ? (
                                         <div className="flex gap-2">
                                             <button
-                                                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                                className={miniActionButtonClass}
                                                 onClick={() => {
                                                     setEditBlood(typeof blood === 'string' ? blood : '');
                                                     setEditing('blood_edit');
@@ -350,14 +373,14 @@ export default function Dashboard() {
                                                 Edit
                                             </button>
                                             <button
-                                                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition"
+                                                className={miniActionButtonClass}
                                                 onClick={() => handleDeleteMetric('blood_group')}
                                             >
                                                 Delete
                                             </button>
                                         </div>
                                     ) : (
-                                        <button className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium hover:bg-red-200 transition" onClick={() => setEditing('blood_add')}>
+                                        <button className={`${addButtonClass} bg-red-100 text-red-700 hover:bg-red-200`} onClick={() => setEditing('blood_add')}>
                                             Add Blood Group
                                         </button>
                                     )}
@@ -376,7 +399,7 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
                         <div className="bg-white rounded-2xl shadow p-6 flex flex-col gap-2">
                             <div className="flex items-center gap-2 mb-2">
                                 <span className="bg-blue-100 text-blue-600 rounded-full p-2">
@@ -444,6 +467,60 @@ export default function Dashboard() {
                                 <div className="text-xs text-gray-500">Weight Status</div>
                                 <div className="text-base font-semibold text-gray-900">
                                     {healthInsights?.weightStatus ?? "--"}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* New feature: Metric History (last 3 entries from existing metrics array). */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col gap-4">
+                        <div className="text-lg font-semibold text-gray-800">Recent Activity</div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="rounded-xl bg-gray-50 border border-gray-100 p-4">
+                                <div className="text-sm font-semibold text-gray-800 mb-2">Height History</div>
+                                <div className="space-y-2 text-sm">
+                                    {heightHistory.length === 0 ? (
+                                        <div className="text-gray-400">No height history yet.</div>
+                                    ) : (
+                                        heightHistory.map((item) => (
+                                            <div key={item.id} className="flex justify-between">
+                                                <span className="font-semibold text-gray-900">{item.value} cm</span>
+                                                <span className="text-gray-500">{formatMetricDate(item.timestamp)}</span>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="rounded-xl bg-gray-50 border border-gray-100 p-4">
+                                <div className="text-sm font-semibold text-gray-800 mb-2">Weight History</div>
+                                <div className="space-y-2 text-sm">
+                                    {weightHistory.length === 0 ? (
+                                        <div className="text-gray-400">No weight history yet.</div>
+                                    ) : (
+                                        weightHistory.map((item) => (
+                                            <div key={item.id} className="flex justify-between">
+                                                <span className="font-semibold text-gray-900">{item.value} kg</span>
+                                                <span className="text-gray-500">{formatMetricDate(item.timestamp)}</span>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="rounded-xl bg-gray-50 border border-gray-100 p-4">
+                                <div className="text-sm font-semibold text-gray-800 mb-2">Blood Group History</div>
+                                <div className="space-y-2 text-sm">
+                                    {bloodHistory.length === 0 ? (
+                                        <div className="text-gray-400">No blood group history yet.</div>
+                                    ) : (
+                                        bloodHistory.map((item) => (
+                                            <div key={item.id} className="flex justify-between">
+                                                <span className="font-semibold text-gray-900">{item.unit ?? item.value}</span>
+                                                <span className="text-gray-500">{formatMetricDate(item.timestamp)}</span>
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
                             </div>
                         </div>
