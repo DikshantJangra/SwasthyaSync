@@ -78,6 +78,20 @@ export default function Dashboard() {
 
     const isPending = sessionPending || metricsLoading || fitnessLoading;
 
+    // Helper to convert BMI number into a readable category.
+    // We keep this logic simple and fully client-side (no backend changes).
+    const getBMICategory = (bmi: number) => {
+        // BMI < 18.5 → Underweight
+        if (bmi < 18.5) return "Underweight";
+        // BMI 18.5–24.9 → Normal
+        if (bmi < 25) return "Normal";
+        // BMI ≥ 25 → Overweight
+        return "Overweight";
+    };
+
+    // Keep the existing BMI calculation, just reuse it for display + category.
+    const bmiValue = height && weight ? weight / ((height / 100) ** 2) : null;
+
     return (
         <div className="min-h-screen p-4 md:p-8 font-poppins">
             <div className="mb-8">
@@ -160,7 +174,10 @@ export default function Dashboard() {
                         <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
                             <img src="/bmi.svg" alt="BMI" className="h-14 mb-2" />
                             <div className="text-lg font-semibold text-gray-800">BMI</div>
-                            <div className="text-2xl font-bold text-purple-600">{height && weight ? (weight / ((height / 100) ** 2)).toFixed(1) : '--'}</div>
+                            <div className="text-2xl font-bold text-purple-600">{bmiValue !== null ? bmiValue.toFixed(1) : '--'}</div>
+                            {bmiValue !== null ? (
+                                <div className="text-sm font-semibold text-gray-700">{getBMICategory(bmiValue)}</div>
+                            ) : null}
                             <div className="text-xs text-gray-500">Add height and weight to calculate BMI</div>
                         </div>
                     </div>
