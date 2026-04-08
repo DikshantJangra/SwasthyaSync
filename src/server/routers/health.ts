@@ -18,6 +18,18 @@ export const healthRouter = router({
     }
   }),
 
+  getHealthInsights: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      logger.info({ userId: ctx.session.user.id }, 'Fetching health insights via tRPC');
+
+      // Delegate to the new use-case (application layer).
+      return await healthModule.getHealthInsightsUseCase.execute(ctx.session.user.id);
+    } catch (error) {
+      console.error('tRPC getHealthInsights failed:', error);
+      throw error;
+    }
+  }),
+
   // Master Pulse Dashboard Query
   getUnifiedPulse: protectedProcedure.query(async ({ ctx }) => {
     try {

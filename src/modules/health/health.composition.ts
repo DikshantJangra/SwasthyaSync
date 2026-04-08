@@ -5,6 +5,7 @@ import { DrizzleFitnessRepository } from "../fitness/infrastructure/repositories
 import { LogMetricUseCase } from "./application/use-cases/LogMetricUseCase";
 import { GetMetricsUseCase } from "./application/use-cases/GetMetricsUseCase";
 import { GetUnifiedPulseDashboardUseCase } from "./application/use-cases/GetUnifiedPulseDashboardUseCase";
+import { GetHealthInsightsUseCase } from "./application/use-cases/GetHealthInsightsUseCase";
 
 import { eventBus } from "@/lib/events/EventBus";
 import { addJob } from "@/lib/queue";
@@ -36,6 +37,7 @@ export const createHealthModule = () => {
   // Use-cases (called by the API layer)
   const logMetricUseCase = new LogMetricUseCase(metricRepository, eventBus);
   const getMetricsUseCase = new GetMetricsUseCase(metricRepository);
+  const getHealthInsightsUseCase = new GetHealthInsightsUseCase(metricRepository);
   const getUnifiedPulseUseCase = new GetUnifiedPulseDashboardUseCase(
     fitnessRepository,
     metricRepository,
@@ -45,6 +47,7 @@ export const createHealthModule = () => {
   return {
     logMetricUseCase,
     getMetricsUseCase,
+    getHealthInsightsUseCase,
     getUnifiedPulseUseCase,
   };
 };

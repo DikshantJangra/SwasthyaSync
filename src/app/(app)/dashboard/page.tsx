@@ -17,6 +17,11 @@ export default function Dashboard() {
         enabled: !!session?.user,
     });
 
+    // New feature: Health Insights (simple backend use-case via tRPC).
+    const { data: healthInsights, isLoading: insightsLoading } = trpc.health.getHealthInsights.useQuery(undefined, {
+        enabled: !!session?.user,
+    });
+
     // if the user changes any metrics it is logging the metric to the database using logMetric usecase
     const logMetricMutation = trpc.health.logMetric.useMutation({
         onSuccess: (_data, variables) => {
@@ -76,7 +81,11 @@ export default function Dashboard() {
         }
     };
 
-    const isPending = sessionPending || metricsLoading || fitnessLoading;
+    const isPending = sessionPending || metricsLoading || fitnessLoading || insightsLoading;
+
+    // Reusable UI styles to keep cards consistent and reduce duplication.
+    const metricCardClass =
+        "bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-between gap-3 min-h-[230px] transition-transform duration-150 hover:scale-[1.02] hover:shadow-md";
 
     // Helper to convert BMI number into a readable category.
     // We keep this logic simple and fully client-side (no backend changes).
@@ -91,9 +100,15 @@ export default function Dashboard() {
 
     // Keep the existing BMI calculation, just reuse it for display + category.
     const bmiValue = height && weight ? weight / ((height / 100) ** 2) : null;
+    const bmiCategory = bmiValue !== null ? getBMICategory(bmiValue) : null;
+
+    // Hydration can be null if user hasn't logged anything yet.
+    // For a fuller UI, we display 0L while still keeping the original "not logged" state.
+    const hydrationDisplayValue = todayHydration ?? 0;
+    const hydrationProgressPercent = Math.min((hydrationDisplayValue / 3) * 100, 100);
 
     return (
-        <div className="min-h-screen p-4 md:p-8 font-poppins">
+        <div className="min-h-screen p-4 md:p-8 font-poppins bg-gray-50">
             <div className="mb-8">
                 {isPending ? (
                     <div className="space-y-2">
@@ -107,11 +122,13 @@ export default function Dashboard() {
                     </div>
                 )}
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Layout: 2-column main content + right panel on large screens */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 flex flex-col gap-6">
+                    {/* Top metric cards: consistent height, spacing, alignment, subtle hover */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
-                            <img src="/height.svg" alt="Height" className="h-14 mb-2" />
+                        <div className={metricCardClass}>
+                            <img src="/height.svg" alt="Height" className="h-14" />
                             {editing === 'height' ? (
                                 <form className="flex flex-col items-center w-full" onSubmit={handleSubmitHeight}>
                                     <input type="number" value={inputHeight} onChange={e => setInputHeight(e.target.value)} className="w-full text-center border rounded p-1 mb-2 text-black" placeholder="Enter height (cm)" />
@@ -127,8 +144,8 @@ export default function Dashboard() {
                                 </>
                             )}
                         </div>
-                        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
-                            <img src="/weight.svg" alt="Weight" className="h-14 mb-2" />
+                        <div className={metricCardClass}>
+                            <img src="/weight.svg" alt="Weight" className="h-14" />
                             {editing === 'weight' ? (
                                 <form className="flex flex-col items-center w-full" onSubmit={handleSubmitWeight}>
                                     <input type="number" value={inputWeight} onChange={e => setInputWeight(e.target.value)} className="w-full text-center border rounded p-1 mb-2 text-black" placeholder="Enter weight (kg)" />
@@ -144,8 +161,8 @@ export default function Dashboard() {
                                 </>
                             )}
                         </div>
-                        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
-                            <img src="/blood.svg" alt="Blood Group" className="h-14 mb-2" />
+                        <div className={metricCardClass}>
+                            <img src="/blood.svg" alt="Blood Group" className="h-14" />
                             {editing === 'blood' ? (
                                 <form className="flex flex-col items-center w-full" onSubmit={handleSubmitBlood}>
                                     <select value={inputBlood} onChange={e => setInputBlood(e.target.value)} className="w-full text-center border rounded p-1 mb-2 text-black">
@@ -171,32 +188,15 @@ export default function Dashboard() {
                                 </>
                             )}
                         </div>
-                        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
-                            <img src="/bmi.svg" alt="BMI" className="h-14 mb-2" />
+                        <div className={metricCardClass}>
+                            <img src="/bmi.svg" alt="BMI" className="h-14" />
                             <div className="text-lg font-semibold text-gray-800">BMI</div>
-                            <div className="text-2xl font-bold text-purple-600">{bmiValue !== null ? bmiValue.toFixed(1) : '--'}</div>
-                            {bmiValue !== null ? (
-                                <div className="text-sm font-semibold text-gray-700">{getBMICategory(bmiValue)}</div>
-                            ) : null}
-                            <div className="text-xs text-gray-500">Add height and weight to calculate BMI</div>
-                        </div>
-
-                        {/* Health Summary card: uses existing client-side values (no new API calls) */}
-                        <div className="bg-white rounded-2xl shadow p-6 flex flex-col gap-3">
-                            <div className="text-lg font-semibold text-gray-800">Health Summary</div>
-                            {/* Weight: show value if we have it, otherwise show placeholder */}
-                            <div className="text-sm text-gray-700">
-                                <span className="font-semibold">Weight:</span> {weight !== null ? `${weight}kg` : '--'}
+                            {/* BMI: show number and category in a clean stacked layout */}
+                            <div className="flex flex-col items-center leading-tight">
+                                <div className="text-2xl font-bold text-purple-600">{bmiValue !== null ? bmiValue.toFixed(1) : '--'}</div>
+                                <div className="text-sm font-medium text-gray-500">{bmiCategory ?? "Add height & weight"}</div>
                             </div>
-                            {/* BMI: show number + category using our helper function */}
-                            <div className="text-sm text-gray-700">
-                                <span className="font-semibold">BMI:</span>{" "}
-                                {bmiValue !== null ? `${bmiValue.toFixed(1)} (${getBMICategory(bmiValue)})` : '--'}
-                            </div>
-                            {/* Hydration: can be null, so fallback to "--" */}
-                            <div className="text-sm text-gray-700">
-                                <span className="font-semibold">Hydration:</span> {todayHydration !== null ? `${todayHydration}L` : '--'}
-                            </div>
+                            <div className="text-xs text-gray-500 text-center">Add height and weight to calculate BMI</div>
                         </div>
                     </div>
 
@@ -221,31 +221,65 @@ export default function Dashboard() {
                                 </div>
                             )}
                         </div>
-                        <div className="bg-white rounded-2xl shadow p-6 flex flex-col gap-2">
+                        {/* Hydration: fuller card with always-visible value, progress, and clear action */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col gap-3">
                             <div className="flex items-center gap-2 mb-2">
-                                <span className="bg-blue-100 text-blue-600 rounded-full p-2">
+                                <span className="bg-blue-50 text-blue-600 rounded-full p-2">
                                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M12 2C10.34 2 9 3.34 9 5c0 2.5 3 7 3 7s3-4.5 3-7c0-1.66-1.34-3-3-3z" fill="#2563eb" /></svg>
                                 </span>
                                 <span className="font-semibold text-gray-800">Hydration</span>
-                                <span className="ml-auto text-xs text-gray-400">Manual</span>
+                                <span className="ml-auto text-xs text-gray-400">Daily</span>
                             </div>
-                            <div className="text-2xl font-bold text-gray-900">{todayHydration !== null ? `${todayHydration}L` : '--'} <span className="text-gray-400 text-base font-normal">/ 3L</span></div>
-                            <div className="text-sm text-green-600 mb-2">{todayHydration !== null ? 'Good progress!' : 'No hydration logged.'}</div>
-                            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <div className="h-full bg-blue-500 rounded-full" style={{ width: todayHydration !== null ? `${Math.min((todayHydration / 3) * 100, 100)}%` : '0%' }}></div>
+                            <div className="text-2xl font-bold text-gray-900">
+                                {hydrationDisplayValue}L <span className="text-gray-400 text-base font-normal">/ 3L</span>
                             </div>
-                            <Link href="/hydration" className="mt-2 ml-auto flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 transition">
-                                <span className="text-lg font-bold">+</span> Add
-                            </Link>
+                            <div className="text-sm text-gray-500">
+                                {todayHydration !== null ? "Good progress! Keep it going." : "No hydration logged yet."}
+                            </div>
+                            <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div className="h-full bg-blue-500 rounded-full" style={{ width: `${hydrationProgressPercent}%` }}></div>
+                            </div>
+                            <div className="flex justify-end pt-1">
+                                <Link href="/hydration" className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-full text-sm font-semibold hover:bg-blue-700 transition">
+                                    <span className="text-base font-bold leading-none">+</span> Add
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Health Insights: new feature card (does not replace existing cards) */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col gap-4">
+                        <div className="text-lg font-semibold text-gray-800">Health Insights</div>
+                        {/* We keep the UI simple: just show backend-calculated strings */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="rounded-xl bg-gray-50 border border-gray-100 p-4">
+                                <div className="text-xs text-gray-500">BMI Status</div>
+                                <div className="text-base font-semibold text-gray-900">
+                                    {healthInsights?.bmiCategory ?? "--"}
+                                </div>
+                            </div>
+                            <div className="rounded-xl bg-gray-50 border border-gray-100 p-4">
+                                <div className="text-xs text-gray-500">Hydration</div>
+                                <div className="text-base font-semibold text-gray-900">
+                                    {healthInsights?.hydrationStatus ?? "--"}
+                                </div>
+                            </div>
+                            <div className="rounded-xl bg-gray-50 border border-gray-100 p-4">
+                                <div className="text-xs text-gray-500">Weight Status</div>
+                                <div className="text-base font-semibold text-gray-900">
+                                    {healthInsights?.weightStatus ?? "--"}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div className="flex flex-col gap-6">
-                    <div className="bg-red-500 text-white rounded-2xl shadow p-6 flex flex-col items-center justify-center gap-4">
-                        <div className="text-lg font-semibold text-center">Keep Your Health Records Organized!</div>
-                        <div className="text-center text-sm">Easily add and manage your important health documents in one place.</div>
-                        <Link href="/health-vault" className="bg-white text-red-500 font-semibold rounded-full px-6 py-2 flex items-center gap-2 shadow hover:bg-gray-100 transition">
+                    {/* Right panel CTA: tighter spacing and a smaller button for less visual noise */}
+                    <div className="bg-red-500 text-white rounded-2xl shadow-sm p-5 flex flex-col items-center justify-center gap-3">
+                        <div className="text-lg font-semibold text-center leading-snug">Keep Your Health Records Organized!</div>
+                        <div className="text-center text-sm text-white/90 leading-relaxed">Add and manage important health documents in one place.</div>
+                        <Link href="/health-vault" className="bg-white text-red-500 font-semibold rounded-full px-5 py-1.5 flex items-center gap-2 shadow hover:bg-gray-100 transition text-sm">
                             <span className="text-xl font-bold">+</span> Add New
                         </Link>
                     </div>
