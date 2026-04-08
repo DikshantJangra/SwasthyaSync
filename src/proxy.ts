@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 export default async function authMiddleware(request: NextRequest) {
     // Check for the session cookie first - this is fast and reliable
     const sessionToken = request.cookies.get("better-auth.session_token") || 
+                         request.cookies.get("__Secure-better-auth.session_token") ||
                          request.cookies.get("__secure-better-auth.session_token");
 
     // If no cookie at all, we're definitely not logged in
@@ -12,7 +13,7 @@ export default async function authMiddleware(request: NextRequest) {
 
     // Since we have a cookie, let's verify it with the API
     try {
-        const origin = process.env.NEXT_PUBLIC_BETTER_AUTH_URL || request.nextUrl.origin;
+        const origin = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_BETTER_AUTH_URL || request.nextUrl.origin;
         const sessionResponse = await fetch(
             `${origin}/api/auth/get-session`,
             {
@@ -23,6 +24,7 @@ export default async function authMiddleware(request: NextRequest) {
         );
 
         if (!sessionResponse.ok) {
+            console.error("Middleware Auth: Get-session failed with status", sessionResponse.status);
             return NextResponse.redirect(new URL("/login", request.url));
         }
 
@@ -30,6 +32,7 @@ export default async function authMiddleware(request: NextRequest) {
 
         // Better Auth returns null or { user: null } if no active session
         if (!sessionData || !sessionData.user) {
+            console.warn("Middleware Auth: No user in session data");
             return NextResponse.redirect(new URL("/login", request.url));
         }
     } catch (error) {
