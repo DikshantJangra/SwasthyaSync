@@ -60,3 +60,12 @@ temp_repos/
 .agents/
 .claude/
 skills-lock.json
+
+# diagrams
+/diagram/*.jpeg
+/diagram/*.jpg
+/diagram/*.png
+/diagram/*.gif
+/diagram/*.svg
+/diagram/*.webp
+
