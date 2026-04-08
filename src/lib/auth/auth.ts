@@ -15,16 +15,27 @@ export const auth = betterAuth({
             verification: schema.verification,
         }
     }),
+    secret: env.BETTER_AUTH_SECRET,
+    baseURL: process.env.NODE_ENV === "development" ? undefined : env.BETTER_AUTH_URL,
     socialProviders: {
-        google: {
-            clientId: env.AUTH_GOOGLE_ID || "",
-            clientSecret: env.AUTH_GOOGLE_SECRET || "",
-        },
+        ...(env.AUTH_GOOGLE_ID && env.AUTH_GOOGLE_SECRET ? {
+            google: {
+                clientId: env.AUTH_GOOGLE_ID,
+                clientSecret: env.AUTH_GOOGLE_SECRET,
+            },
+        } : {}),
     },
     emailAndPassword: {
         enabled: true
     },
+    advanced: {
+        trustedProxyHeaders: true
+    },
     plugins: [
         nextCookies()
-    ]
+    ],
+    logger: {
+        level: "debug",
+    }
 });
+

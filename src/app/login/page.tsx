@@ -17,8 +17,10 @@ export default function Login() {
     const router = useRouter();
 
     React.useEffect(() => {
+        console.log("Session changed:", session);
         if (session) {
-            router.push('/dashboard');
+            console.log("Session detected, redirecting to /dashboard...");
+            window.location.href = '/dashboard';
         }
     }, [session, router]);
 
@@ -27,16 +29,22 @@ export default function Login() {
         setLoading(true);
         setError('');
 
-        const { error: signInError } = await authClient.signIn.email({
-            email,
-            password,
-        });
+        try {
+            const { error: signInError } = await authClient.signIn.email({
+                email,
+                password,
+            });
 
-        if (signInError) {
-            setError(signInError.message || 'Login failed. Please check your credentials.');
+            if (signInError) {
+                setError(signInError.message || 'Login failed. Please check your credentials.');
+                setLoading(false);
+            } else {
+                window.location.href = '/dashboard';
+            }
+        } catch (err) {
+            console.error("Sign-in error:", err);
+            setError('An unexpected error occurred. Please try again.');
             setLoading(false);
-        } else {
-            router.push('/dashboard');
         }
     };
 

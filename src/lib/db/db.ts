@@ -4,9 +4,14 @@ import * as schema from "./schema";
 
 import { env } from "@/lib/env";
 
+const connectionString = env.DATABASE_URL;
+if (!connectionString) {
+  console.error("❌ DATABASE_URL is missing!");
+}
+
 const pool = new pg.Pool({
-  connectionString: env.DATABASE_URL,
-  ssl: env.DATABASE_URL.includes("localhost") ? false : { rejectUnauthorized: false },
+  connectionString,
+  ssl: connectionString?.includes("localhost") ? false : { rejectUnauthorized: false },
 });
 
 export const db = drizzle(pool, { schema });
