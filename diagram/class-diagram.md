@@ -16,15 +16,12 @@ SwasthyaSync follows a **Hexagonal (Ports & Adapters) Architecture** with **Depe
 
 ---
 
-## Diagram
+## Diagram 1 — Domain Layer (All Entities, Ports, Events)
 
 ```mermaid
 classDiagram
     direction TB
 
-    %% ═══════════════════════════════════
-    %% DOMAIN LAYER — HEALTH MODULE
-    %% ═══════════════════════════════════
     class HealthMetric {
         <<interface>>
         +id? : number
@@ -80,9 +77,24 @@ classDiagram
         +payload : HealthMetric
     }
 
-    %% ═══════════════════════════════════
-    %% DOMAIN LAYER — FITNESS MODULE
-    %% ═══════════════════════════════════
+    class DomainEvent {
+        <<interface>>
+        +name : string
+        +payload : any
+        +timestamp : Date
+    }
+
+    MetricLoggedEvent ..|> DomainEvent : implements
+```
+
+---
+
+## Diagram 2 — Domain Layer (Fitness Entities)
+
+```mermaid
+classDiagram
+    direction TB
+
     class Exercise {
         <<interface>>
         +id : string
@@ -273,9 +285,20 @@ classDiagram
         +saveTdeeLog(log) void
     }
 
-    %% ═══════════════════════════════════
-    %% DOMAIN LOGIC
-    %% ═══════════════════════════════════
+    WorkoutLog --> ExerciseSet : contains
+    NutritionLogEntry --> Nutrients : snapshots
+    Food --> Nutrients : has
+    Goal --> Nutrients : targets
+```
+
+---
+
+## Diagram 3 — Application Layer (Use Cases, DTOs, Domain Logic)
+
+```mermaid
+classDiagram
+    direction TB
+
     class TdeeCalculator {
         <<static>>
         +calculate(measurements, nutrition, date) TdeeResult
@@ -289,9 +312,6 @@ classDiagram
         +calculate1RM(weight, reps) number
     }
 
-    %% ═══════════════════════════════════
-    %% APPLICATION LAYER — HEALTH
-    %% ═══════════════════════════════════
     class MetricDTO {
         <<DTO>>
         +id : number
@@ -337,9 +357,6 @@ classDiagram
         +execute(userId) UnifiedPulsePayload
     }
 
-    %% ═══════════════════════════════════
-    %% APPLICATION LAYER — FITNESS
-    %% ═══════════════════════════════════
     class LogWorkoutUseCase {
         -repo : FitnessRepository
         +execute(log) void
@@ -370,9 +387,30 @@ classDiagram
         +execute(userId) void
     }
 
-    %% ═══════════════════════════════════
-    %% INFRASTRUCTURE LAYER
-    %% ═══════════════════════════════════
+    LogMetricUseCase --> MetricRepository : depends on
+    LogMetricUseCase --> EventBus : publishes to
+    LogMetricUseCase --> MetricMapper : uses
+    GetMetricsUseCase --> MetricRepository : depends on
+    GetHealthInsightsUseCase --> MetricRepository : depends on
+    GetUnifiedPulseDashboardUseCase --> FitnessRepository : depends on
+    GetUnifiedPulseDashboardUseCase --> MetricRepository : depends on
+    GetUnifiedPulseDashboardUseCase --> MedicalRepository : depends on
+    LogWorkoutUseCase --> FitnessRepository : depends on
+    LogMealUseCase --> FitnessRepository : depends on
+    GetFitnessDashboardUseCase --> FitnessRepository : depends on
+    SetGoalUseCase --> FitnessRepository : depends on
+    GenerateInsightsUseCase --> FitnessRepository : depends on
+    UpdateAdaptiveTdeeUseCase --> FitnessRepository : depends on
+```
+
+---
+
+## Diagram 4 — Infrastructure & API Layer (Adapters, Routers, EventBus)
+
+```mermaid
+classDiagram
+    direction TB
+
     class DrizzleMetricRepository {
         +save(metric) HealthMetric
         +findByUserId(userId) HealthMetric[]
@@ -397,25 +435,12 @@ classDiagram
         +saveTdeeLog(log) void
     }
 
-    %% ═══════════════════════════════════
-    %% CROSS-CUTTING: EVENT BUS
-    %% ═══════════════════════════════════
-    class DomainEvent {
-        <<interface>>
-        +name : string
-        +payload : any
-        +timestamp : Date
-    }
-
     class EventBus {
         -emitter : EventEmitter
         +publish(event) void
         +subscribe(eventName, handler) void
     }
 
-    %% ═══════════════════════════════════
-    %% API LAYER (tRPC)
-    %% ═══════════════════════════════════
     class healthRouter {
         <<tRPC Router>>
         +getMetrics(ctx) MetricDTO[]
@@ -437,40 +462,10 @@ classDiagram
         +setGoal(ctx, input) void
     }
 
-    %% ═══════════════════════════════════
-    %% RELATIONSHIPS
-    %% ═══════════════════════════════════
-
-    %% Domain relationships
-    WorkoutLog --> ExerciseSet : contains
-    NutritionLogEntry --> Nutrients : snapshots
-    Food --> Nutrients : has
-    Goal --> Nutrients : targets
-    MetricLoggedEvent ..|> DomainEvent : implements
-
-    %% Ports & Adapters
     DrizzleMetricRepository ..|> MetricRepository : implements
     DrizzleMedicalRepository ..|> MedicalRepository : implements
     DrizzleFitnessRepository ..|> FitnessRepository : implements
 
-    %% Use Cases depend on Ports (DIP)
-    LogMetricUseCase --> MetricRepository : depends on
-    LogMetricUseCase --> EventBus : publishes to
-    LogMetricUseCase --> MetricMapper : uses
-    GetMetricsUseCase --> MetricRepository : depends on
-    GetHealthInsightsUseCase --> MetricRepository : depends on
-    GetUnifiedPulseDashboardUseCase --> FitnessRepository : depends on
-    GetUnifiedPulseDashboardUseCase --> MetricRepository : depends on
-    GetUnifiedPulseDashboardUseCase --> MedicalRepository : depends on
-
-    LogWorkoutUseCase --> FitnessRepository : depends on
-    LogMealUseCase --> FitnessRepository : depends on
-    GetFitnessDashboardUseCase --> FitnessRepository : depends on
-    SetGoalUseCase --> FitnessRepository : depends on
-    GenerateInsightsUseCase --> FitnessRepository : depends on
-    UpdateAdaptiveTdeeUseCase --> FitnessRepository : depends on
-
-    %% tRPC Routers call Use Cases
     healthRouter --> LogMetricUseCase : calls
     healthRouter --> GetMetricsUseCase : calls
     healthRouter --> GetHealthInsightsUseCase : calls
@@ -482,9 +477,9 @@ classDiagram
     fitnessRouter --> SetGoalUseCase : calls
     fitnessRouter --> UpdateAdaptiveTdeeUseCase : calls
 
-    %% Event Bus wiring
     EventBus --> MetricLoggedEvent : dispatches
 ```
+
 
 ---
 

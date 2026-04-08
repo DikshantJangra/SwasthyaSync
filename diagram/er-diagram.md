@@ -22,13 +22,10 @@ The database is organized into **three domains**:
 
 ---
 
-## Diagram
+## Diagram 1 — Auth Domain
 
 ```mermaid
 erDiagram
-    %% ═══════════════════════════════════
-    %% AUTH DOMAIN
-    %% ═══════════════════════════════════
     user {
         text id PK
         text name
@@ -75,9 +72,22 @@ erDiagram
         timestamp updatedAt
     }
 
-    %% ═══════════════════════════════════
-    %% HEALTH DOMAIN
-    %% ═══════════════════════════════════
+    user ||--o{ session : "has sessions"
+    user ||--o{ account : "has accounts"
+```
+
+---
+
+## Diagram 2 — Health Domain
+
+```mermaid
+erDiagram
+    user {
+        text id PK
+        text name
+        text email UK
+    }
+
     health_metrics {
         integer id PK
         text userId FK
@@ -110,9 +120,22 @@ erDiagram
         timestamp createdAt
     }
 
-    %% ═══════════════════════════════════
-    %% FITNESS DOMAIN
-    %% ═══════════════════════════════════
+    user ||--o{ health_metrics : "logs metrics"
+    user ||--o{ medical_appointments : "schedules"
+    user ||--o{ health_vault_records : "stores records"
+```
+
+---
+
+## Diagram 3 — Fitness Domain (Workouts, Nutrition, Foods)
+
+```mermaid
+erDiagram
+    user {
+        text id PK
+        text name
+    }
+
     fitness_exercises {
         text id PK
         text name
@@ -198,6 +221,25 @@ erDiagram
         jsonb calculation_context
     }
 
+    user ||--o{ fitness_workouts : "creates templates"
+    user ||--o{ fitness_workout_logs : "logs workouts"
+    fitness_workouts ||--o{ fitness_workout_logs : "template for"
+    user ||--o{ fitness_nutrition_logs : "logs meals"
+    user ||--o{ fitness_daily_summaries : "daily summary"
+    user ||--o{ fitness_tdee_logs : "TDEE history"
+```
+
+---
+
+## Diagram 4 — Fitness Domain (Wellness, Goals, Integrations)
+
+```mermaid
+erDiagram
+    user {
+        text id PK
+        text name
+    }
+
     fitness_sleep_logs {
         text id PK
         text userId FK
@@ -276,23 +318,6 @@ erDiagram
         timestamp created_at
     }
 
-    %% ═══════════════════════════════════
-    %% RELATIONSHIPS
-    %% ═══════════════════════════════════
-    user ||--o{ session : "has sessions"
-    user ||--o{ account : "has accounts"
-
-    user ||--o{ health_metrics : "logs metrics"
-    user ||--o{ medical_appointments : "schedules"
-    user ||--o{ health_vault_records : "stores records"
-
-    user ||--o{ fitness_workouts : "creates templates"
-    user ||--o{ fitness_workout_logs : "logs workouts"
-    fitness_workouts ||--o{ fitness_workout_logs : "template for"
-
-    user ||--o{ fitness_nutrition_logs : "logs meals"
-    user ||--o{ fitness_daily_summaries : "daily summary"
-    user ||--o{ fitness_tdee_logs : "TDEE history"
     user ||--o{ fitness_sleep_logs : "logs sleep"
     user ||--o{ fitness_fasting_logs : "logs fasts"
     user ||--o{ fitness_water_intake : "logs water"

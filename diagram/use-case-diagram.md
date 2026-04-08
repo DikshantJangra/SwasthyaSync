@@ -15,13 +15,11 @@ There are **three actors**:
 
 ## Diagram
 
+## Diagram 1 — User-Facing Use Cases
+
 ```mermaid
 graph TB
-    subgraph Actors
-        A[👤 User / Patient]
-        S[⚙️ System / Background Worker]
-        E[🔗 External Provider]
-    end
+    A[👤 User / Patient]
 
     subgraph Auth["🔐 Authentication"]
         A1[Sign Up with Email]
@@ -44,6 +42,30 @@ graph TB
         M4[Search and Filter Vault Records]
     end
 
+    A --> A1
+    A --> A2
+    A --> A3
+    A --> A4
+    A --> A5
+
+    A --> H1
+    A --> H2
+    A --> H3
+
+    A --> M1
+    A --> M2
+    A --> M3
+    A --> M4
+```
+
+---
+
+## Diagram 2 — Fitness, Wellness & Metabolic Use Cases
+
+```mermaid
+graph TB
+    A[👤 User / Patient]
+
     subgraph Fitness["🏋️ Fitness & Nutrition"]
         F1[Log Workout with Sets & Reps]
         F2[Log Meal with Nutrients]
@@ -65,34 +87,6 @@ graph TB
         ME3[View Unified Pulse Dashboard]
     end
 
-    subgraph AI["🤖 AI & Family"]
-        AI1[Generate AI Insights]
-        AI2[View AI Recommendations]
-        FA1[Grant Family Member Access]
-        FA2[Connect External Provider - Garmin / Fitbit]
-    end
-
-    subgraph Background["⚙️ Background Processing"]
-        B1[Process Metric Job - BullMQ]
-        B2[Compute TDEE from Weight + Nutrition Data]
-    end
-
-    %% User interactions
-    A --> A1
-    A --> A2
-    A --> A3
-    A --> A4
-    A --> A5
-
-    A --> H1
-    A --> H2
-    A --> H3
-
-    A --> M1
-    A --> M2
-    A --> M3
-    A --> M4
-
     A --> F1
     A --> F2
     A --> F3
@@ -107,27 +101,47 @@ graph TB
     A --> ME1
     A --> ME2
     A --> ME3
+```
+
+---
+
+## Diagram 3 — System, AI & Background Use Cases
+
+```mermaid
+graph TB
+    A[👤 User / Patient]
+    S[⚙️ System / Background Worker]
+    E[🔗 External Provider]
+
+    subgraph AI["🤖 AI & Family"]
+        AI1[Generate AI Insights]
+        AI2[View AI Recommendations]
+        FA1[Grant Family Member Access]
+        FA2[Connect External Provider - Garmin / Fitbit]
+    end
+
+    subgraph Background["⚙️ Background Processing"]
+        B1[Process Metric Job - BullMQ]
+        B2[Compute TDEE from Weight + Nutrition Data]
+    end
 
     A --> AI2
     A --> FA1
     A --> FA2
 
-    %% System interactions
     S --> B1
     S --> B2
     S --> AI1
 
-    %% External Provider
     E --> FA2
 
-    %% Dependencies
-    H1 -.->|triggers| B1
-    ME1 -.->|uses| B2
-    B2 -.->|reads| F2
+    H1[Log Health Metric] -.->|triggers| B1
+    ME1[Sync TDEE] -.->|uses| B2
+    B2 -.->|reads| F2[Log Meal]
     B2 -.->|reads| H1
-    ME3 -.->|aggregates| H2
-    ME3 -.->|aggregates| F3
-    ME3 -.->|aggregates| M2
+    ME3[Unified Pulse] -.->|aggregates| H2[View Metrics]
+    ME3 -.->|aggregates| F3[Fitness Dashboard]
+    ME3 -.->|aggregates| M2[Appointments]
 ```
 
 ---
