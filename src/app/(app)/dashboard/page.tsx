@@ -180,6 +180,24 @@ export default function Dashboard() {
                             ) : null}
                             <div className="text-xs text-gray-500">Add height and weight to calculate BMI</div>
                         </div>
+
+                        {/* Health Summary card: uses existing client-side values (no new API calls) */}
+                        <div className="bg-white rounded-2xl shadow p-6 flex flex-col gap-3">
+                            <div className="text-lg font-semibold text-gray-800">Health Summary</div>
+                            {/* Weight: show value if we have it, otherwise show placeholder */}
+                            <div className="text-sm text-gray-700">
+                                <span className="font-semibold">Weight:</span> {weight !== null ? `${weight}kg` : '--'}
+                            </div>
+                            {/* BMI: show number + category using our helper function */}
+                            <div className="text-sm text-gray-700">
+                                <span className="font-semibold">BMI:</span>{" "}
+                                {bmiValue !== null ? `${bmiValue.toFixed(1)} (${getBMICategory(bmiValue)})` : '--'}
+                            </div>
+                            {/* Hydration: can be null, so fallback to "--" */}
+                            <div className="text-sm text-gray-700">
+                                <span className="font-semibold">Hydration:</span> {todayHydration !== null ? `${todayHydration}L` : '--'}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
