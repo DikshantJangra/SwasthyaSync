@@ -1,0 +1,153 @@
+HEALTH MODULE FLOW (Metrics: hydration / height / weight / blood_group)
+====================================================================
+
+This doc explains what happens when a user changes a metric in the UI.
+It’s written for learning/debugging: it shows the call chain, which file runs,
+and what each step does.
+
+
+1) USER ACTION (Frontend)
+------------------------
+File: src/app/(app)/dashboard/page.tsx
+
+What happens:
+- User clicks “Add Height/Weight/Blood Group” and submits the form.
+- The page calls a tRPC mutation:
+  - trpc.health.logMetric.useMutation(...).mutate({ type, value, unit? })
+
+Important detail:
+- The inputs reset ONLY after a successful save.
+- After save, the page refetches metrics so the UI updates.
+
+
+2) API ENTRYPOINT (tRPC Router)
+------------------------------
+File: src/server/routers/health.ts
+
+Function:
+- healthRouter.logMetric
+
+What it does:
+- Validates input using Zod schema:
+  - src/modules/health/application/validators/metric.validator.ts
+- Calls the application use-case:
+  - healthModule.logMetricUseCase.execute(userId, input)
+
+
+3) MODULE WIRING (Composition Root)
+----------------------------------
+File: src/modules/health/health.composition.ts
+
+What it does:
+- Creates real implementations (repositories) and injects them into use-cases.
+- Subscribes to the domain event 'health.metric_logged' to enqueue a background job.
+
+Key objects wired here:
+- DrizzleMetricRepository (DB access)
+- LogMetricUseCase (application logic)
+- GetMetricsUseCase (dashboard reads)
+- GetUnifiedPulseDashboardUseCase (big combined dashboard API)
+
+
+4) INPUT VALIDATION (Zod)
+------------------------
+File: src/modules/health/application/validators/metric.validator.ts
+
+What it does:
+- Ensures:
+  - type is one of: hydration, weight, height, blood_group
+  - value is a number (most metrics) OR a string (blood_group)
+  - unit is optional
+
+Why it matters:
+- This is runtime validation on the server. It prevents bad inputs from reaching the DB.
+
+
+5) APPLICATION LOGIC (Use-case)
+------------------------------
+File: src/modules/health/application/use-cases/LogMetricUseCase.ts
+
+Method:
+- execute(userId, data)
+
+What it does:
+Step 1: Save the metric via the repository
+  - metricRepository.save({ userId, type, value, unit?, timestamp })
+
+Step 2: Publish a domain event
+  - eventBus.publish(new MetricLoggedEvent({ metric: savedMetric }))
+  - Event class:
+    - src/modules/health/domain/events/MetricLoggedEvent.ts
+
+Step 3: Return a DTO
+  - MetricMapper.toDTO(savedMetric)
+  - Mapper:
+    - src/modules/health/application/mappers/metric.mapper.ts
+  - DTO shape:
+    - src/modules/health/application/dtos/metric.dto.ts
+
+
+6) DATABASE WRITE (Repository)
+-----------------------------
+File: src/modules/health/infrastructure/repositories/DrizzleMetricRepository.ts
+
+Method:
+- save(metric)
+
+What it does:
+- Inserts a row into the health_metrics table.
+- Table definition:
+  - src/lib/db/schema.ts  (healthMetrics table)
+
+Blood group note (important):
+- Some databases may still have health_metrics.value as INTEGER (older schema).
+- If inserting "B+" into an integer column fails, the repository falls back:
+  - stores blood group in the `unit` column (text)
+  - stores value = 0
+- The dashboard displays blood group using `unit` first, then `value`.
+
+
+7) DOMAIN EVENT -> BACKGROUND JOB (Side effect)
+----------------------------------------------
+Files:
+- Event subscription: src/modules/health/health.composition.ts
+- Queue helper: src/lib/queue
+
+What happens:
+- The app listens for 'health.metric_logged'
+- It enqueues a job called 'process-metric' with:
+  - metricId, userId, type
+
+Why:
+- Keep expensive/extra processing off the request path.
+
+
+8) READ PATH (Dashboard refresh)
+-------------------------------
+File: src/app/(app)/dashboard/page.tsx
+
+What triggers a refresh:
+- On mutation success, the page calls refetch() on:
+  - trpc.health.getMetrics.useQuery(...)
+
+API + use-case:
+- Router: src/server/routers/health.ts → getMetrics
+- Use-case: src/modules/health/application/use-cases/GetMetricsUseCase.ts
+- Repository read: src/modules/health/infrastructure/repositories/DrizzleMetricRepository.ts → findByUserId
+
+Important detail:
+- We store many rows per metric over time (a log).
+- GetMetricsUseCase returns ONLY the latest row per type for dashboard display.
+
+
+9) UNIFIED PULSE (Optional, bigger dashboard API)
+------------------------------------------------
+Files:
+- Router: src/server/routers/health.ts → getUnifiedPulse
+- Use-case: src/modules/health/application/use-cases/GetUnifiedPulseDashboardUseCase.ts
+
+What it does:
+- Loads fitness + metrics + medical data in parallel via Promise.all
+- Computes summary numbers (TDEE, calories, BMI, etc.)
+- Returns one combined JSON payload for the UI.
+

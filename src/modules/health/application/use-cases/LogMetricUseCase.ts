@@ -12,8 +12,11 @@ export class LogMetricUseCase {
   ) {}
 
   async execute(userId: string, data: CreateMetricDTO): Promise<MetricDTO> {
-    // 1. Persist Entity
-    const metric = await this.metricRepository.save({
+    // Logs a new metric for the user.
+    // Request comes from UI via tRPC, we persist it, then emit an event for any side-effects.
+
+    // Step 1: Save to DB via the repository
+    const savedMetric = await this.metricRepository.save({
       userId,
       type: data.type,
       value: data.value,
@@ -21,10 +24,10 @@ export class LogMetricUseCase {
       timestamp: new Date(),
     });
 
-    // 2. Publish Domain Event (Side effects handled by subscribers)
-    this.eventBus.publish(new MetricLoggedEvent({ metric }));
+    // Step 2: Publish an event (subscribers can enqueue jobs, analytics, etc.)
+    this.eventBus.publish(new MetricLoggedEvent({ metric: savedMetric }));
 
-    // 3. Return DTO
-    return MetricMapper.toDTO(metric);
+    // Step 3: Return DTO for the API response
+    return MetricMapper.toDTO(savedMetric);
   }
 }

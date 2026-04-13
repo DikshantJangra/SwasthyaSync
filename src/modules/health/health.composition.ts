@@ -8,24 +8,32 @@ import { GetUnifiedPulseDashboardUseCase } from "./application/use-cases/GetUnif
 
 import { eventBus } from "@/lib/events/EventBus";
 import { addJob } from "@/lib/queue";
+import type { HealthMetric } from "./domain/entities/Metric";
 
 export const createHealthModule = () => {
-  // Infrastructure
+  // Composition root for the health module.
+  // This is the "wiring" file: pick real implementations and connect them together.
+
+  // Repositories (DB)
   const metricRepository = new DrizzleMetricRepository();
   const medicalRepository = new DrizzleMedicalRepository();
   const fitnessRepository = new DrizzleFitnessRepository();
 
-  // Side Effects
-  eventBus.subscribe('health.metric_logged', async (event: any) => {
-    const { metric } = event.payload;
-    await addJob('process-metric', { 
-        metricId: metric.id, 
-        userId: metric.userId, 
-        type: metric.type 
-    });
-  });
+  // When a metric is logged, enqueue a background job for extra processing.
+  eventBus.subscribe(
+    "health.metric_logged",
+    async (event: { payload: { metric: HealthMetric } }) => {
+      const metric = event.payload.metric;
 
-  // Application Use Cases
+      await addJob("process-metric", {
+        metricId: metric.id,
+        userId: metric.userId,
+        type: metric.type,
+      });
+    }
+  );
+
+  // Use-cases (called by the API layer)
   const logMetricUseCase = new LogMetricUseCase(metricRepository, eventBus);
   const getMetricsUseCase = new GetMetricsUseCase(metricRepository);
   const getUnifiedPulseUseCase = new GetUnifiedPulseDashboardUseCase(
