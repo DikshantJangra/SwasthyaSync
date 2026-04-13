@@ -9,7 +9,7 @@ export const healthRouter = router({
       logger.info({ userId: ctx.session.user.id }, 'Fetching metrics via tRPC');
       return await healthModule.getMetricsUseCase.execute(ctx.session.user.id);
     } catch (error) {
-      console.error('❌ tRPC getMetrics failed:', error);
+      console.error('tRPC getMetrics failed:', error);
       throw error;
     }
   }),
@@ -20,7 +20,7 @@ export const healthRouter = router({
       logger.info({ userId: ctx.session.user.id }, 'Fetching unified health pulse via tRPC');
       return await healthModule.getUnifiedPulseUseCase.execute(ctx.session.user.id);
     } catch (error) {
-      console.error('❌ tRPC getUnifiedPulse failed:', error);
+      console.error('tRPC getUnifiedPulse failed:', error);
       throw error;
     }
   }),

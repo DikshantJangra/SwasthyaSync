@@ -66,10 +66,10 @@ export class GetUnifiedPulseDashboardUseCase {
         upcomingAppointments: appointments.filter(a => a.status === 'scheduled'),
         recentRecords: records.slice(0, 3),
         vitals: {
-          weight: latestWeight?.value || 0,
-          height: latestHeight?.value || 0,
-          bmi: (latestWeight && latestHeight) 
-            ? (latestWeight.value / ((latestHeight.value / 100) ** 2)).toFixed(1)
+          weight: Number(latestWeight?.value) || 0,
+          height: Number(latestHeight?.value) || 0,
+          bmi: (latestWeight && latestHeight)
+            ? (Number(latestWeight.value) / ((Number(latestHeight.value) / 100) ** 2)).toFixed(1)
             : "0.0",
         }
       },

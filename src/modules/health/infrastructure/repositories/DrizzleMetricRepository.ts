@@ -6,18 +6,44 @@ import { eq } from "drizzle-orm";
 
 export class DrizzleMetricRepository implements MetricRepository {
   async save(metric: HealthMetric): Promise<HealthMetric> {
-    const [result] = await db.insert(healthMetrics).values({
-      userId: metric.userId,
-      type: metric.type,
-      value: metric.value,
-      unit: metric.unit,
-      timestamp: metric.timestamp,
-    }).returning();
+    try {
+      // Preferred shape (works when `health_metrics.value` is text)
+      const [result] = await db
+        .insert(healthMetrics)
+        .values({
+          userId: metric.userId,
+          type: metric.type,
+          value: String(metric.value),
+          unit: metric.unit,
+          timestamp: metric.timestamp,
+        })
+        .returning();
 
-    return {
-      ...result,
-      type: result.type as any, // Drizzle type casting
-    };
+      return {
+        ...result,
+        type: result.type as any, // Drizzle type casting
+      };
+    } catch (error) {
+      // Backward-compatible fallback if DB column is still integer:
+      // store blood group in `unit` (text) and keep a dummy numeric value.
+      if (metric.type !== "blood_group") throw error;
+
+      const [result] = await db
+        .insert(healthMetrics)
+        .values({
+          userId: metric.userId,
+          type: metric.type,
+          value: 0 as any,
+          unit: String(metric.value),
+          timestamp: metric.timestamp,
+        })
+        .returning();
+
+      return {
+        ...result,
+        type: result.type as any,
+      };
+    }
   }
 
   async findByUserId(userId: string): Promise<HealthMetric[]> {

@@ -8,8 +8,7 @@ import { authClient } from "@/lib/auth/client";
 
 export default function Dashboard() {
     const { data: session, isPending: sessionPending } = authClient.useSession();
-    
-    // tRPC Queries
+    // it is fetching the metrics from the database using getMetrics usecase
     const { data: metrics, isLoading: metricsLoading, refetch } = trpc.health.getMetrics.useQuery(undefined, {
         enabled: !!session?.user,
     });
@@ -18,21 +17,33 @@ export default function Dashboard() {
         enabled: !!session?.user,
     });
 
-    // tRPC Mutations
+    // if the user changes any metrics it is logging the metric to the database using logMetric usecase
     const logMetricMutation = trpc.health.logMetric.useMutation({
-        onSuccess: () => {
+        onSuccess: (_data, variables) => {
             refetch();
             setEditing(null);
-        }
+            if (variables.type === 'height') setInputHeight('');
+            if (variables.type === 'weight') setInputWeight('');
+            if (variables.type === 'blood_group') setInputBlood('');
+        },
+        onError: (error) => {
+            console.error('Failed to save metric:', error);
+            alert('Could not save metric. Please try again.');
+        },
     });
 
     const [upcomingMeetups, setUpcomingMeetups] = useState<{ doctor: string; date: string }[]>([]);
     
     // Local derived state from tRPC data
-    const todayHydration = metrics?.find(m => m.type === 'hydration')?.value ?? null;
-    const height = metrics?.find(m => m.type === 'height')?.value ?? null;
-    const weight = metrics?.find(m => m.type === 'weight')?.value ?? null;
-    const blood = metrics?.find(m => m.type === 'blood_pressure' || (m as any).type === 'blood')?.value ?? null;
+    const todayHydrationRaw = metrics?.find(m => m.type === 'hydration')?.value;
+    const todayHydration =
+        todayHydrationRaw != null && todayHydrationRaw !== '' ? Number(todayHydrationRaw) : null;
+    const heightRaw = metrics?.find(m => m.type === 'height')?.value;
+    const height = heightRaw != null && heightRaw !== '' ? Number(heightRaw) : null;
+    const weightRaw = metrics?.find(m => m.type === 'weight')?.value;
+    const weight = weightRaw != null && weightRaw !== '' ? Number(weightRaw) : null;
+    const bloodMetric = metrics?.find(m => m.type === 'blood_group');
+    const blood = bloodMetric?.unit ?? bloodMetric?.value ?? null;
 
     useEffect(() => {
         setUpcomingMeetups([
@@ -50,22 +61,18 @@ export default function Dashboard() {
         e.preventDefault();
         if (inputHeight) {
             logMetricMutation.mutate({ type: 'height', value: Number(inputHeight) });
-            setInputHeight('');
         }
     };
     const handleSubmitWeight = async (e: React.FormEvent) => {
         e.preventDefault();
         if (inputWeight) {
             logMetricMutation.mutate({ type: 'weight', value: Number(inputWeight) });
-            setInputWeight('');
         }
     };
     const handleSubmitBlood = async (e: React.FormEvent) => {
         e.preventDefault();
         if (inputBlood) {
-            // Mapping blood group to a number or string as needed
-            logMetricMutation.mutate({ type: 'blood_pressure', value: 0 }); // Placeholder
-            setInputBlood('');
+            logMetricMutation.mutate({ type: 'blood_group', value: inputBlood });
         }
     };
 

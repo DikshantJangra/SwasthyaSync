@@ -56,7 +56,8 @@ export const healthMetrics = pgTable("health_metrics", {
 		.notNull()
 		.references(() => user.id),
 	type: text("type").notNull(), // hydration, weight, height, etc.
-	value: integer("value").notNull(),
+	// text so blood group (e.g. "A+") and numeric vitals can share one column
+	value: text("value").notNull(),
 	unit: text("unit"),
 	timestamp: timestamp("timestamp").notNull().defaultNow(),
 });
