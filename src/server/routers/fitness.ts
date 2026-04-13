@@ -1,6 +1,22 @@
+/**
+ * Fitness tRPC Router
+ * 
+ * Defines all the API endpoints for the fitness module.
+ * Each route maps to a use case or direct repository call
+ * via the fitnessEngine composition root.
+ * 
+ * Routes are grouped by feature:
+ * - Workouts: log workout sessions
+ * - Nutrition: search food, log meals, get calorie data (NEW)
+ * - Holistic: sleep, water, fasting tracking
+ * - Goals: set fitness goals
+ */
+
 import { z } from "zod";
 import { router, protectedProcedure } from "../trpc";
 import { fitnessEngine } from "@/modules/fitness/fitness.composition";
+// NEW: Import the food search API service
+import { searchFood } from "@/modules/fitness/infrastructure/foodApiService";
 
 const NutrientSchema = z.object({
   calories: z.number(),
@@ -49,7 +65,7 @@ export const fitnessRouter = router({
       });
     }),
 
-  // --- Nutrition ---
+  // --- Nutrition (Legacy — kept for backward compatibility) ---
   logMeal: protectedProcedure
     .input(z.object({
       mealType: z.string(),
@@ -66,6 +82,121 @@ export const fitnessRouter = router({
         date: new Date(),
       });
     }),
+
+  // ============================================================
+  // NEW: Nutrition Tracking Routes (Food Search + Calorie Tracking)
+  // ============================================================
+
+  /**
+   * searchFood — Search for food items using external API
+   * 
+   * Input: query string (e.g., "apple", "rice")
+   * Output: Array of { foodName, calories }
+   * 
+   * Uses Open Food Facts API (free, no API key needed)
+   */
+  searchFood: protectedProcedure
+    .input(z.object({
+      query: z.string().min(1), // At least 1 character to search
+    }))
+    .query(async ({ input }) => {
+      // Call the food API service to search for food items
+      const results = await searchFood(input.query);
+      return results;
+    }),
+
+  /**
+   * searchExercise — Search for gym exercises
+   */
+  searchExercise: protectedProcedure
+    .input(z.object({
+      query: z.string().min(1),
+    }))
+    .query(async ({ input }) => {
+      const { searchExercise } = await import("@/modules/fitness/infrastructure/exerciseApiService");
+      return await searchExercise(input.query);
+    }),
+
+  /**
+   * logFood — Log a food item to the user's daily meal log
+   * 
+   * Input: foodName, calories, mealType
+   * Output: void (just saves to DB)
+   * 
+   * This is called when user selects a food from search results
+   * and picks a meal type (breakfast/lunch/dinner/snacks)
+   */
+  logFood: protectedProcedure
+    .input(z.object({
+      foodName: z.string(),
+      calories: z.number(),
+      protein: z.number().optional(),
+      carbs: z.number().optional(),
+      fat: z.number().optional(),
+      mealType: z.enum(["breakfast", "lunch", "dinner", "snacks"]),
+      date: z.string(), // "YYYY-MM-DD"
+    }))
+    .mutation(async ({ input, ctx }) => {
+      return fitnessEngine.nutrition.logFood({
+        id: Math.random().toString(36).substr(2, 9), // Generate unique ID
+        userId: ctx.session.user.id,                  // Get user from session
+        foodName: input.foodName,
+        calories: input.calories,
+        protein: input.protein,
+        carbs: input.carbs,
+        fat: input.fat,
+        mealType: input.mealType,
+        date: new Date(input.date),                   // Explicit date string
+      });
+    }),
+
+  /**
+   * getFoodLogsByDate — Get all food logs for a specific date, grouped by meal type
+   * 
+   * Input: date string (YYYY-MM-DD)
+   * Output: { breakfast: [...], lunch: [...], dinner: [...], snacks: [...] }
+   * 
+   * Used to display the day-wise meal breakdown in the Nutrition tab
+   */
+  getFoodLogsByDate: protectedProcedure
+    .input(z.object({
+      date: z.string(), // Date in "YYYY-MM-DD" format
+    }))
+    .query(async ({ input, ctx }) => {
+      const date = new Date(input.date);
+      return fitnessEngine.nutrition.getFoodLogsByDate(ctx.session.user.id, date);
+    }),
+
+  /**
+   * getTodayCalories — Get total calories consumed today
+   * 
+   * Input: none (uses session userId)
+   * Output: number (total calories)
+   * 
+   * Used in both the Nutrition tab header and the Dashboard
+   */
+  getTodayCalories: protectedProcedure
+    .query(async ({ ctx }) => {
+      return fitnessEngine.nutrition.getTodayCalories(ctx.session.user.id);
+    }),
+
+  /**
+   * deleteFoodLog — Remove a food log entry
+   * 
+   * Input: id (the food log ID to delete)
+   * Output: void
+   * 
+   * Security: Uses session userId to ensure users can only delete their own logs
+   */
+  deleteFoodLog: protectedProcedure
+    .input(z.object({
+      id: z.string(), // The food log entry ID to delete
+    }))
+    .mutation(async ({ input, ctx }) => {
+      return fitnessEngine.nutrition.deleteFood(input.id, ctx.session.user.id);
+    }),
+
+  // ============================================================
 
   syncTdee: protectedProcedure.mutation(async ({ ctx }) => {
     return fitnessEngine.syncTdee(ctx.session.user.id);
@@ -130,5 +261,71 @@ export const fitnessRouter = router({
         userId: ctx.session.user.id,
         status: "active",
       });
+    }),
+
+  // ============================================================
+  // NEW: Simple Workout Tracking Routes
+  // ============================================================
+  
+  logSimpleWorkout: protectedProcedure
+    .input(z.object({
+      exerciseName: z.string().min(1),
+      caloriesPerSet: z.number().optional(),
+      sets: z.number().min(1),
+      reps: z.number().min(1),
+      duration: z.number().min(1),
+      date: z.string(), // "YYYY-MM-DD"
+    }))
+    .mutation(async ({ input, ctx }) => {
+      return fitnessEngine.workoutTracking.logWorkout({
+        ...input,
+        id: Math.random().toString(36).substr(2, 9),
+        userId: ctx.session.user.id,
+        date: new Date(input.date),
+      });
+    }),
+
+  getSimpleWorkoutsByDate: protectedProcedure
+    .input(z.object({
+      date: z.string(), // "YYYY-MM-DD"
+    }))
+    .query(async ({ input, ctx }) => {
+      return fitnessEngine.workoutTracking.getWorkoutsByDate(ctx.session.user.id, new Date(input.date));
+    }),
+
+  getTodayCaloriesBurned: protectedProcedure
+    .query(async ({ ctx }) => {
+      return fitnessEngine.workoutTracking.getTodayCaloriesBurned(ctx.session.user.id);
+    }),
+
+  deleteSimpleWorkout: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      return fitnessEngine.workoutTracking.deleteWorkout(input.id, ctx.session.user.id);
+    }),
+
+  // --- New Simple Goals ---
+  setSimpleGoal: protectedProcedure
+    .input(z.object({
+      type: z.enum(["lose_weight", "build_muscle", "maintain"]),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      return fitnessEngine.goalsTracking.setGoal(ctx.session.user.id, input.type);
+    }),
+
+  getGoalProgress: protectedProcedure
+    .query(async ({ ctx }) => {
+      return fitnessEngine.goalsTracking.getGoalProgress(ctx.session.user.id);
+    }),
+
+  getDailySummary: protectedProcedure
+    .input(z.object({
+      date: z.string(),
+    }))
+    .query(async ({ input, ctx }) => {
+      const date = new Date(input.date);
+      return fitnessEngine.getDailySummary(ctx.session.user.id, date);
     }),
 });

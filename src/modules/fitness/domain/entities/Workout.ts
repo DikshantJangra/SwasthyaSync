@@ -42,3 +42,15 @@ export interface WorkoutLog {
   sets: ExerciseSet[];
   notes?: string;
 }
+
+export interface SimpleWorkout {
+  id: string;
+  userId: string;
+  exerciseName: string;
+  caloriesPerSet?: number; // Optional
+  sets: number;
+  reps: number;
+  duration: number; // in minutes
+  caloriesBurned: number;
+  date: Date;
+}
