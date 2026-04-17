@@ -1,5 +1,15 @@
 import { Nutrients } from "./Nutrition";
 
+export type GoalType = "lose_weight" | "build_muscle" | "maintain";
+
+export interface SimpleGoal {
+  id: string;
+  userId: string;
+  goalType: GoalType;
+  createdAt: Date;
+}
+
+
 export interface Goal {
   id: string;
   userId: string;
