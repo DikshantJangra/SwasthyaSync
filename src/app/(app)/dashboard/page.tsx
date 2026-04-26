@@ -37,6 +37,10 @@ export default function Dashboard() {
         enabled: !!session?.user,
     });
 
+    const { data: unifiedPulse } = trpc.health.getUnifiedPulse.useQuery(undefined, {
+        enabled: !!session?.user,
+    });
+
     // if the user changes any metrics it is logging the metric to the database using logMetric usecase
     const logMetricMutation = trpc.health.logMetric.useMutation({
         onSuccess: () => {
@@ -66,7 +70,7 @@ export default function Dashboard() {
         }
     };
 
-    const [upcomingMeetups, setUpcomingMeetups] = useState<{ doctor: string; date: string }[]>([]);
+    const upcomingAppointments = unifiedPulse?.medicalPulse?.upcomingAppointments ?? [];
 
     // Frontend-only CRUD (edit/delete) state:
     // We keep a local copy of `metrics` so we can update the UI immediately
@@ -90,13 +94,6 @@ export default function Dashboard() {
     const weight = weightRaw != null && weightRaw !== '' ? Number(weightRaw) : null;
     const bloodMetric = localMetrics?.find(m => m.type === 'blood_group');
     const blood = bloodMetric?.unit ?? bloodMetric?.value ?? null;
-
-    useEffect(() => {
-        setUpcomingMeetups([
-            { doctor: "Dr. Sharma", date: new Date(Date.now() + 86400000).toISOString() },
-            { doctor: "Dr. Gupta", date: new Date(Date.now() + 172800000).toISOString() }
-        ]);
-    }, []);
 
     // `editing` controls which card is in "edit/add" mode in the UI.
     // We use different keys for backend-save ("*_add") vs frontend-only edit ("*_edit").
@@ -435,14 +432,14 @@ export default function Dashboard() {
                                 </span>
                                 <span className="font-semibold text-gray-800">Upcoming Doctor Visits</span>
                             </div>
-                            {upcomingMeetups.length === 0 ? (
+                            {upcomingAppointments.length === 0 ? (
                                 <div className="text-gray-400 italic">No visits scheduled.</div>
                             ) : (
                                 <div className="divide-y divide-gray-200">
-                                    {upcomingMeetups.map((meetup, idx) => (
-                                        <div key={idx} className="flex items-center py-2">
-                                            <span className="font-semibold text-base text-gray-900">{meetup.doctor}</span>
-                                            <span className="ml-auto text-gray-500 text-sm">{new Date(meetup.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                                    {upcomingAppointments.map((meetup) => (
+                                        <div key={meetup.id} className="flex items-center py-2">
+                                            <span className="font-semibold text-base text-gray-900">{meetup.doctorName}</span>
+                                            <span className="ml-auto text-gray-500 text-sm">{new Date(meetup.appointmentDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
                                         </div>
                                     ))}
                                 </div>
