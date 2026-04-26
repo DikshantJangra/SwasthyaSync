@@ -6,14 +6,29 @@ import Link from "next/link";
 import { trpc } from "@/utils/trpc";
 import { authClient } from "@/lib/auth/client";
 
+const getLocalDateString = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function Dashboard() {
     const { data: session, isPending: sessionPending } = authClient.useSession();
+    const utils = trpc.useContext();
     // it is fetching the metrics from the database using getMetrics usecase
     const { data: metrics, isLoading: metricsLoading, refetch } = trpc.health.getMetrics.useQuery(undefined, {
         enabled: !!session?.user,
     });
     
     const { data: fitnessDashboard, isLoading: fitnessLoading } = trpc.fitness.getDashboard.useQuery(undefined, {
+        enabled: !!session?.user,
+    });
+
+    const todayDateStr = getLocalDateString();
+    // NEW: Centralized query for today's daily fitness summary
+    const { data: dailySummary } = trpc.fitness.getDailySummary.useQuery({ date: todayDateStr }, {
         enabled: !!session?.user,
     });
 
@@ -24,18 +39,32 @@ export default function Dashboard() {
 
     // if the user changes any metrics it is logging the metric to the database using logMetric usecase
     const logMetricMutation = trpc.health.logMetric.useMutation({
-        onSuccess: (_data, variables) => {
+        onSuccess: () => {
+            // Invalidate the unified pulse and the metric queries to trigger a refetch
+            utils.health.getMetrics.invalidate();
+            utils.health.getTodayHydration.invalidate(); // Invalidate hydration to update UI
             refetch();
             setEditing(null);
-            if (variables.type === 'height') setInputHeight('');
-            if (variables.type === 'weight') setInputWeight('');
-            if (variables.type === 'blood_group') setInputBlood('');
+            if (inputHeight) setInputHeight('');
+            if (inputWeight) setInputWeight('');
+            if (inputBlood) setInputBlood('');
         },
         onError: (error) => {
             console.error('Failed to save metric:', error);
             alert('Could not save metric. Please try again.');
         },
     });
+
+    const handleAddHydration = () => {
+        const input = window.prompt("Enter hydration amount (in Liters, e.g., 0.5):");
+        if (input && !isNaN(Number(input))) {
+            logMetricMutation.mutate({
+                type: "hydration",
+                value: Number(input).toString(),
+                unit: "L"
+            });
+        }
+    };
 
     const [upcomingMeetups, setUpcomingMeetups] = useState<{ doctor: string; date: string }[]>([]);
 
@@ -50,9 +79,9 @@ export default function Dashboard() {
     }, [metrics]);
 
     // Local derived state from UI metrics (not directly from backend)
-    const todayHydrationRaw = localMetrics?.find(m => m.type === 'hydration')?.value;
-    const todayHydration =
-        todayHydrationRaw != null && todayHydrationRaw !== '' ? Number(todayHydrationRaw) : null;
+    const { data: todayHydrationData } = trpc.health.getTodayHydration.useQuery(undefined, { enabled: !!session?.user });
+    const todayHydration = todayHydrationData?.totalHydration ?? 0;
+
     const heightMetric = localMetrics?.find(m => m.type === 'height');
     const heightRaw = heightMetric?.value;
     const height = heightRaw != null && heightRaw !== '' ? Number(heightRaw) : null;
@@ -138,9 +167,8 @@ export default function Dashboard() {
     const bmiValue = height && weight ? weight / ((height / 100) ** 2) : null;
     const bmiCategory = bmiValue !== null ? getBMICategory(bmiValue) : null;
 
-    // Hydration can be null if user hasn't logged anything yet.
-    // For a fuller UI, we display 0L while still keeping the original "not logged" state.
-    const hydrationDisplayValue = todayHydration ?? 0;
+    // Hydration is now fully dynamic from the backend
+    const hydrationDisplayValue = todayHydration;
     const hydrationProgressPercent = Math.min((hydrationDisplayValue / 3) * 100, 100);
 
     // History helpers:
@@ -433,15 +461,15 @@ export default function Dashboard() {
                                 {hydrationDisplayValue}L <span className="text-gray-400 text-base font-normal">/ 3L</span>
                             </div>
                             <div className="text-sm text-gray-500">
-                                {todayHydration !== null ? "Good progress! Keep it going." : "No hydration logged yet."}
+                                {todayHydration > 0 ? "Good progress! Keep it going." : "No hydration logged yet."}
                             </div>
                             <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
                                 <div className="h-full bg-blue-500 rounded-full" style={{ width: `${hydrationProgressPercent}%` }}></div>
                             </div>
                             <div className="flex justify-end pt-1">
-                                <Link href="/hydration" className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-full text-sm font-semibold hover:bg-blue-700 transition">
+                                <button onClick={handleAddHydration} className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-full text-sm font-semibold hover:bg-blue-700 transition cursor-pointer">
                                     <span className="text-base font-bold leading-none">+</span> Add
-                                </Link>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -549,9 +577,21 @@ export default function Dashboard() {
                                 <span className="font-bold text-lg">{fitnessDashboard?.recentWorkouts.length || 0}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm border-t border-white/10 pt-2">
-                                <span className="opacity-80">Today's Calories</span>
+                                <span className="opacity-80">Burned</span>
+                                <span className="font-bold text-red-400 text-lg">
+                                    {dailySummary?.caloriesBurned ?? 0} kcal
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="opacity-80">Intake</span>
+                                <span className="font-bold text-green-400 text-lg">
+                                    {dailySummary?.caloriesIntake ?? 0} kcal
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm border-t border-white/10 pt-2">
+                                <span className="opacity-80">Net Calories</span>
                                 <span className="font-bold text-[#FF4A20] text-lg">
-                                    {fitnessDashboard?.todayNutrition.reduce((acc, curr) => acc + curr.nutrients.calories, 0) || 0}
+                                    {dailySummary?.netCalories ?? 0} kcal
                                 </span>
                             </div>
                         </div>

@@ -6,6 +6,7 @@ import { LogMetricUseCase } from "./application/use-cases/LogMetricUseCase";
 import { GetMetricsUseCase } from "./application/use-cases/GetMetricsUseCase";
 import { GetUnifiedPulseDashboardUseCase } from "./application/use-cases/GetUnifiedPulseDashboardUseCase";
 import { GetHealthInsightsUseCase } from "./application/use-cases/GetHealthInsightsUseCase";
+import { GetTodayHydrationUseCase } from "./application/use-cases/GetTodayHydrationUseCase";
 
 import { eventBus } from "@/lib/events/EventBus";
 import { addJob } from "@/lib/queue";
@@ -37,6 +38,7 @@ export const createHealthModule = () => {
   // Use-cases (called by the API layer)
   const logMetricUseCase = new LogMetricUseCase(metricRepository, eventBus);
   const getMetricsUseCase = new GetMetricsUseCase(metricRepository);
+  const getTodayHydrationUseCase = new GetTodayHydrationUseCase(metricRepository);
   const getHealthInsightsUseCase = new GetHealthInsightsUseCase(metricRepository);
   const getUnifiedPulseUseCase = new GetUnifiedPulseDashboardUseCase(
     fitnessRepository,
@@ -47,6 +49,7 @@ export const createHealthModule = () => {
   return {
     logMetricUseCase,
     getMetricsUseCase,
+    getTodayHydrationUseCase,
     getHealthInsightsUseCase,
     getUnifiedPulseUseCase,
   };

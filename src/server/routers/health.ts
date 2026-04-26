@@ -18,6 +18,17 @@ export const healthRouter = router({
     }
   }),
 
+  getTodayHydration: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      logger.info({ userId: ctx.session.user.id }, 'Fetching today hydration via tRPC');
+
+      return await healthModule.getTodayHydrationUseCase.execute(ctx.session.user.id);
+    } catch (error) {
+      console.error('tRPC getTodayHydration failed:', error);
+      throw error;
+    }
+  }),
+
   getHealthInsights: protectedProcedure.query(async ({ ctx }) => {
     try {
       logger.info({ userId: ctx.session.user.id }, 'Fetching health insights via tRPC');
