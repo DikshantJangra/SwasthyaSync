@@ -69,3 +69,6 @@ skills-lock.json
 /diagram/*.svg
 /diagram/*.webp
 
+
+# gstack (global install)
+.amazonq/rules/gstack.md
